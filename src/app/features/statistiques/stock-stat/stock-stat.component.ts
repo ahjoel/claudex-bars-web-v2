@@ -1,0 +1,150 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
+import { MouvementService } from '../../../core/services/mouvement.service';
+import { PdfService } from '../../../core/services/pdf.service';
+import { DataTableComponent, DataTableColumn } from '../../../shared/components/datatable/datatable.component';
+
+@Component({
+  selector: 'app-stock-stat',
+  standalone: true,
+  imports: [CommonModule, DataTableComponent],
+  template: `
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><i class="fas fa-boxes me-2 text-primary"></i>Inventaire du stock</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">Statistiques</li>
+            <li class="breadcrumb-item active">Inventaire stock</li>
+          </ol>
+        </nav>
+      </div>
+      <button class="btn btn-outline-primary" (click)="loadData()" [disabled]="loading">
+        <i class="fas fa-sync me-2"></i>Actualiser
+      </button>
+    </div>
+
+    <div class="card-custom">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-list me-2"></i>Stock disponible par produit
+          <span class="badge bg-secondary ms-2">{{ allData.length }}</span>
+        </span>
+        <button class="btn btn-sm btn-outline-danger" (click)="downloadPdf()" *ngIf="allData.length" [disabled]="loading">
+          <i class="fas fa-file-pdf me-1"></i>Télécharger PDF
+        </button>
+      </div>
+      <div class="card-body p-0">
+        <div class="p-3">
+          <app-datatable
+            [data]="pagedData"
+            [columns]="columns"
+            [actions]="[]"
+            [loading]="loading"
+            [totalRecords]="allData.length"
+            [pageSize]="pageSize"
+            [currentPage]="currentPage"
+            (pageChange)="onPageChange($event)"
+          ></app-datatable>
+        </div>
+      </div>
+    </div>
+  `
+})
+export class StockStatComponent implements OnInit {
+  allData: any[] = [];
+  pagedData: any[] = [];
+  loading = false;
+  pageSize = 10;
+  currentPage = 0;
+
+  columns: DataTableColumn[] = [
+    { field: 'produit', header: 'Produit', sortable: true },
+    { field: 'model', header: 'Modèle' },
+    { field: 'stockR1', header: 'Stock R1', align: 'center',
+      format: v => {
+        const n = Number(v ?? 0);
+        return n <= 0
+          ? `<span class="badge bg-danger">${n}</span>`
+          : `<span class="badge bg-primary">${n}</span>`;
+      }},
+    { field: 'stockRC', header: 'Stock RC', align: 'center',
+      format: v => {
+        const n = Number(v ?? 0);
+        return n <= 0
+          ? `<span class="badge bg-danger">${n}</span>`
+          : `<span class="badge bg-info">${n}</span>`;
+      }},
+    { field: 'total', header: 'Total', align: 'center',
+      format: v => {
+        const n = Number(v ?? 0);
+        return `<strong class="${n <= 0 ? 'text-danger' : ''}">${n}</strong>`;
+      }}
+  ];
+
+  constructor(private mouvementService: MouvementService, private pdf: PdfService) {}
+
+  ngOnInit(): void { this.loadData(); }
+
+  loadData(): void {
+    this.loading = true;
+    forkJoin({
+      r1: this.mouvementService.stockDispo('R1'),
+      rc: this.mouvementService.stockDispo('RC')
+    }).subscribe({
+      next: ({ r1, rc }) => {
+        const r1Data: any[] = (r1 as any)?.data?.data || [];
+        const rcData: any[] = (rc as any)?.data?.data || [];
+        const map = new Map<number, any>();
+        r1Data.forEach(item => map.set(item.id, {
+          produit: item.produit, model: item.model,
+          stockR1: Number(item.st_dispo ?? 0), stockRC: 0
+        }));
+        rcData.forEach(item => {
+          if (map.has(item.id)) {
+            map.get(item.id).stockRC = Number(item.st_dispo ?? 0);
+          } else {
+            map.set(item.id, { produit: item.produit, model: item.model, stockR1: 0, stockRC: Number(item.st_dispo ?? 0) });
+          }
+        });
+        this.allData = Array.from(map.values()).map(item => ({
+          ...item, total: item.stockR1 + item.stockRC
+        }));
+        this.currentPage = 0;
+        this.applyPage();
+        this.loading = false;
+      },
+      error: () => { this.loading = false; }
+    });
+  }
+
+  onPageChange(e: { page: number; size: number }): void {
+    this.currentPage = e.page;
+    this.pageSize = e.size;
+    this.applyPage();
+  }
+
+  private applyPage(): void {
+    const start = this.currentPage * this.pageSize;
+    this.pagedData = this.allData.slice(start, start + this.pageSize);
+  }
+
+  downloadPdf(): void {
+    const today = new Date().toLocaleDateString('fr-FR');
+    const cols = [
+      { header: 'Produit', width: '*' },
+      { header: 'Modèle', width: '100' },
+      { header: 'Stock R1', width: '70' },
+      { header: 'Stock RC', width: '70' },
+      { header: 'Total', width: '60' }
+    ];
+    const rows = this.allData.map(r => [
+      r.produit || '-',
+      r.model || '-',
+      r.stockR1 ?? 0,
+      r.stockRC ?? 0,
+      r.total ?? 0
+    ]);
+    this.pdf.generateStatPdf('Inventaire du stock', `Au ${today}`, cols, rows, `inventaire-stock-${today.replace(/\//g, '-')}`);
+  }
+}

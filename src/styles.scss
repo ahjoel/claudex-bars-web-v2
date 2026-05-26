@@ -1,0 +1,419 @@
+@import 'primeicons/primeicons.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-blue: #0d6efd;
+  --secondary-blue: #0b5ed7;
+  --light-blue: #e7f1ff;
+  --dark-blue: #004085;
+  --success-green: #198754;
+  --danger-red: #dc3545;
+  --warning-yellow: #ffc107;
+  --border-light: #e9ecef;
+  --sidebar-width: 260px;
+}
+
+* {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+html, body {
+  -webkit-overflow-scrolling: touch;
+  height: 100%;
+  margin: 0;
+}
+
+button, a, [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+body {
+  background-color: #f8f9fa;
+}
+
+// ==================== LAYOUT ====================
+.layout-body {
+  display: flex;
+  min-height: calc(100vh - 64px);
+}
+
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-x: hidden;
+  background-color: #f8f9fa;
+}
+
+.layout-footer {
+  background: #f8f9fa;
+  border-top: 1px solid var(--border-light);
+  padding: 1rem 1.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+// ==================== NAVBAR ====================
+.navbar-custom {
+  background: linear-gradient(135deg, #0d6efd 0%, #004085 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 0 1.5rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+
+  .navbar-brand {
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: white !important;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .nav-link {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    &:hover { color: white !important; }
+    &.active {
+      color: white !important;
+      border-bottom: 2px solid white;
+    }
+  }
+}
+
+// ==================== SIDEBAR ====================
+.sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  background: white;
+  border-right: 1px solid var(--border-light);
+  padding: 1rem 0;
+  overflow-y: auto;
+  height: calc(100vh - 64px);
+  position: sticky;
+  top: 64px;
+
+  .nav-link {
+    color: #495057;
+    padding: 0.65rem 1.25rem;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: auto;
+    min-width: auto;
+
+    &:hover {
+      background-color: var(--light-blue);
+      color: var(--primary-blue);
+      border-left-color: var(--primary-blue);
+    }
+
+    &.active {
+      background-color: var(--light-blue);
+      color: var(--primary-blue);
+      border-left-color: var(--primary-blue);
+      font-weight: 600;
+    }
+
+    i {
+      width: 20px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+  }
+
+  .sidebar-title {
+    padding: 0.75rem 1.25rem 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #adb5bd;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .nav-submenu {
+    background-color: #f8f9fa;
+    border-left: 3px solid var(--light-blue);
+    margin: 0 0.5rem;
+    border-radius: 0 4px 4px 0;
+
+    .nav-link {
+      padding: 0.5rem 1rem 0.5rem 2rem;
+      font-size: 0.85rem;
+      border-left: none;
+      &:hover, &.active {
+        background-color: var(--light-blue);
+        color: var(--primary-blue);
+        border-left: none;
+      }
+    }
+  }
+
+  .nav-parent {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    .toggle-icon {
+      font-size: 0.7rem;
+      transition: transform 0.2s ease;
+      &.rotated { transform: rotate(90deg); }
+    }
+  }
+}
+
+// ==================== CARDS ====================
+.card-custom {
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .card-header {
+    background: var(--light-blue);
+    border: none;
+    font-weight: 600;
+    color: var(--primary-blue);
+    padding: 1rem 1.25rem;
+    border-radius: 10px 10px 0 0 !important;
+  }
+
+  .card-body {
+    padding: 1.25rem;
+  }
+}
+
+// ==================== BUTTONS ====================
+.btn-primary {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: var(--secondary-blue);
+    border-color: var(--secondary-blue);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+  }
+}
+
+.btn-outline-primary {
+  color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  font-weight: 600;
+
+  &:hover {
+    background-color: var(--light-blue);
+    color: var(--primary-blue);
+    border-color: var(--primary-blue);
+  }
+}
+
+// ==================== FORMS ====================
+.form-control {
+  border: 1px solid var(--border-light);
+  padding: 0.6rem 0.9rem;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+
+  &:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+  }
+}
+
+.form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.form-select {
+  border: 1px solid var(--border-light);
+  &:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+  }
+}
+
+// ==================== BADGES ====================
+.badge-status {
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.78rem;
+
+  &.badge-active { background-color: #d1fae5; color: #065f46; }
+  &.badge-inactive { background-color: #f3f4f6; color: #6b7280; }
+  &.badge-pending { background-color: #fef3c7; color: #92400e; }
+  &.badge-danger { background-color: #fee2e2; color: #991b1b; }
+}
+
+// ==================== TABLES ====================
+.table-custom {
+  border-collapse: collapse;
+  width: 100%;
+
+  thead {
+    background-color: var(--light-blue);
+    th {
+      color: var(--primary-blue);
+      font-weight: 700;
+      border: none;
+      padding: 0.85rem 1rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border-light);
+      transition: background-color 0.15s ease;
+
+      &:hover { background-color: #f8fbff; }
+
+      td {
+        padding: 0.7rem 1rem;
+        vertical-align: middle;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+// ==================== STAT CARDS ====================
+.stat-card {
+  background: white;
+  border-left: 4px solid var(--primary-blue);
+  padding: 1.25rem;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.4rem;
+  }
+
+  .stat-icon {
+    font-size: 2rem;
+    opacity: 0.3;
+  }
+}
+
+// ==================== PAGE HEADER ====================
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+
+  .page-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+  }
+
+  .breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    font-size: 0.85rem;
+    .breadcrumb-item {
+      color: #6c757d;
+      &.active { color: var(--primary-blue); font-weight: 600; }
+    }
+  }
+}
+
+// ==================== RESPONSIVE ====================
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    top: 64px;
+    height: calc(100vh - 64px);
+    z-index: 1020;
+    transition: left 0.3s ease;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.15);
+
+    &.show { left: 0; }
+  }
+
+  .main-content { padding: 1rem; }
+}
+
+// ==================== PRINT ====================
+@media print {
+  body * { visibility: hidden; }
+  .print-section, .print-section * { visibility: visible; }
+  .print-section {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    padding: 24px;
+    background: white;
+  }
+  .no-print { display: none !important; }
+}
+
+// ==================== MODALS ====================
+.modal-header-custom {
+  background: linear-gradient(135deg, #0d6efd 0%, #004085 100%);
+  color: white;
+  border-radius: 8px 8px 0 0;
+
+  .btn-close { filter: invert(1); }
+}
+
+// ==================== SCROLLBAR ====================
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
