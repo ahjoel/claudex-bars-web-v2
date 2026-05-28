@@ -46,7 +46,7 @@ import { SnackbarService } from '../../../core/services/snackbar.service';
               </button>
             </div>
             <div class="invalid-feedback d-block" *ngIf="submitted && f['password'].errors">
-              Mot de passe requis (min. 6 caractères)
+              Mot de passe requis (min. 2 caractères)
             </div>
           </div>
 
@@ -120,7 +120,7 @@ export class LoginComponent {
   ) {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(2)]]
     });
   }
 
