@@ -83,10 +83,11 @@ import { AppUser } from '../../../core/models/entities.model';
                   <label class="form-label">Profil</label>
                   <select class="form-select" formControlName="profile">
                     <option value="">Sélectionner...</option>
-                    <option value="admin">Administrateur</option>
-                    <option value="manager">Manager</option>
-                    <option value="caissier">Caissier</option>
-                    <option value="vendeur">Vendeur</option>
+                    <option value="SUPER-ADMIN">SUPER-ADMIN</option>
+                    <option value="ADMINISTRATEUR">ADMINISTRATEUR</option>
+                    <option value="GERANT">GERANT</option>
+                    <option value="FACTURIER-R1">FACTURIER-R1</option>
+                    <option value="FACTURIER-RC">FACTURIER-RC</option>
                   </select>
                 </div>
                 <div class="col-md-6">
