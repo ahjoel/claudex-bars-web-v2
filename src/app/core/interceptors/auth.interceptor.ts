@@ -9,11 +9,12 @@ import { environment } from '../../environments/environment';
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   private hmacSecret = environment.hmacSecret;
+  private apiUrl = environment.apiUrl;
 
   constructor(private router: Router) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    if (!request.url.includes('api') && !request.url.includes('bars-api-v2')) return next.handle(request);
+    if (!request.url.startsWith(this.apiUrl)) return next.handle(request);
 
     const body = request.body || {};
     const timestamp = Math.floor(Date.now() / 1000).toString();

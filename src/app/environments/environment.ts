@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'api',
+  apiUrl: '/bars-api-v2',
   backendUrl: 'http://localhost:3000/bars-api-v2',
   hmacSecret: 'claudex_bars_hmac_secret_2026',
   tokenKey: 'claudex_bars_auth_token',
