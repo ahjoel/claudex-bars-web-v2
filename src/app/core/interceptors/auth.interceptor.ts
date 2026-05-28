@@ -26,7 +26,7 @@ export class AuthInterceptor implements HttpInterceptor {
       .set('Content-Type', 'application/json')
       .set('x-hmac-signature', signature);
 
-    const isLoginEndpoint = request.url.includes('auth/in');
+    const isLoginEndpoint = request.url.includes('sign/in');
     if (!isLoginEndpoint) {
       const token = localStorage.getItem('authToken');
       if (token) headers = headers.set('access-token', token);
