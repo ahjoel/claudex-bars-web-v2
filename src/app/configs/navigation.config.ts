@@ -67,7 +67,7 @@ export const navigationConfig: NavSection[] = [
     title: 'Administration',
     items: [
       { title: 'Utilisateurs',        path: '/admin/users',     icon: 'fas fa-user-cog'    },
-      { title: 'Rôles & Permissions', path: '/admin/roles',     icon: 'fas fa-shield-alt', superAdminOnly: true },
+      { title: 'Rôles & Permissions', path: '/admin/roles',     icon: 'fas fa-shield-alt' },
       { title: 'Paramètres',          path: '/admin/settings',  icon: 'fas fa-cog'         }
     ]
   }

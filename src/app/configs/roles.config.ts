@@ -30,6 +30,7 @@ const ALL_SCREENS = [
   '/statistiques/stock',
   '/statistiques/caisse-mensuelle',
   '/admin/users',
+  '/admin/roles',
   '/admin/settings',
 ];
 

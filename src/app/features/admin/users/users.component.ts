@@ -98,11 +98,15 @@ import { AppUser } from '../../../core/models/entities.model';
                     <option value="RC">Zone RC</option>
                   </select>
                 </div>
-                <div class="col-12" *ngIf="!editingId">
-                  <label class="form-label">Mot de passe *</label>
-                  <input type="password" class="form-control" formControlName="password" placeholder="Mot de passe"
+                <div class="col-12">
+                  <label class="form-label">
+                    {{ editingId ? 'Nouveau mot de passe' : 'Mot de passe *' }}
+                    <span class="text-muted" *ngIf="editingId"> (laisser vide pour ne pas modifier)</span>
+                  </label>
+                  <input type="password" class="form-control" formControlName="password"
+                    [placeholder]="editingId ? 'Nouveau mot de passe' : 'Mot de passe'"
                     [class.is-invalid]="submitted && form.get('password')?.invalid" />
-                  <div class="invalid-feedback">Requis (min. 6 caractères)</div>
+                  <div class="invalid-feedback">{{ editingId ? 'Min. 2 caractères' : 'Requis (min. 2 caractères)' }}</div>
                 </div>
               </div>
             </div>
@@ -184,8 +188,8 @@ export class UsersComponent implements OnInit {
     if (user) this.form.patchValue(user);
     // Mot de passe obligatoire seulement à la création
     const pwControl = this.form.get('password');
-    if (this.editingId) { pwControl?.clearValidators(); }
-    else { pwControl?.setValidators([Validators.required, Validators.minLength(6)]); }
+    if (this.editingId) { pwControl?.setValidators([Validators.minLength(2)]); }
+    else { pwControl?.setValidators([Validators.required, Validators.minLength(2)]); }
     pwControl?.updateValueAndValidity();
     this.showModal = true;
   }
