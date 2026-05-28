@@ -34,10 +34,11 @@
               "node_modules/bootstrap-icons/font/bootstrap-icons.css",
               "src/styles.scss",
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css"
-            ],
+            ]
           },
           "configurations": {
             "production": {
+              "baseHref": "/gestion-bars/",
               "budgets": [
                 {
                   "type": "initial",
