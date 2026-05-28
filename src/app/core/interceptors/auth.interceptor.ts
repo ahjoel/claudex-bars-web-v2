@@ -13,7 +13,7 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(private router: Router) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    if (!request.url.includes('api')) return next.handle(request);
+    if (!request.url.includes('api') && !request.url.includes('bars-api-v2')) return next.handle(request);
 
     const body = request.body || {};
     const timestamp = Math.floor(Date.now() / 1000).toString();
@@ -25,7 +25,7 @@ export class AuthInterceptor implements HttpInterceptor {
       .set('Content-Type', 'application/json')
       .set('x-hmac-signature', signature);
 
-    const isLoginEndpoint = request.url.includes('sign/in');
+    const isLoginEndpoint = request.url.includes('auth/in');
     if (!isLoginEndpoint) {
       const token = localStorage.getItem('authToken');
       if (token) headers = headers.set('access-token', token);
