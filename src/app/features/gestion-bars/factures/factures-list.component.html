@@ -240,41 +240,145 @@
 
     <!-- Edit Modal -->
     <div class="modal fade show d-block" tabindex="-1" *ngIf="showEditModal" style="background:rgba(0,0,0,0.5)" (click)="closeEditModal()">
-      <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-dialog modal-xl" (click)="$event.stopPropagation()">
         <div class="modal-content">
           <div class="modal-header modal-header-custom">
-            <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Modifier la facture — {{ editFacture?.code }}</h5>
+            <h5 class="modal-title">
+              <i class="fas fa-edit me-2"></i>Modifier — {{ editFacture?.code }}
+              <span class="badge ms-2" [class.bg-primary]="editZone === 'R1'" [class.bg-info]="editZone === 'RC'">Zone {{ editZone }}</span>
+            </h5>
             <button type="button" class="btn-close btn-close-white" (click)="closeEditModal()"></button>
           </div>
+
+          <!-- Tabs -->
+          <ul class="nav nav-tabs px-3 pt-2 bg-light border-bottom">
+            <li class="nav-item">
+              <button class="nav-link" [class.active]="editTab === 'infos'" (click)="editTab = 'infos'">
+                <i class="fas fa-info-circle me-1"></i>Informations
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" [class.active]="editTab === 'lignes'" (click)="editTab = 'lignes'">
+                <i class="fas fa-list me-1"></i>Lignes
+                <span class="badge bg-secondary ms-1">{{ editLines.length }}</span>
+              </button>
+            </li>
+          </ul>
+
           <div class="modal-body">
-            <form [formGroup]="editForm">
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Client *</label>
-                <select class="form-select" formControlName="client_id"
-                  [class.is-invalid]="editSubmitted && editForm.get('client_id')?.invalid">
-                  <option value="">— Choisir un client —</option>
-                  <option *ngFor="let c of clients" [value]="c.id">{{ c.name }}</option>
-                </select>
-                <div class="invalid-feedback">Client requis</div>
-              </div>
-              <div class="row g-3">
-                <div class="col-6">
-                  <label class="form-label fw-semibold">Taxe (%)</label>
-                  <input type="number" class="form-control" formControlName="tax" min="0" max="100" placeholder="0" />
+
+            <!-- Chargement -->
+            <div *ngIf="loadingEditDetail" class="text-center py-4">
+              <div class="spinner-border text-primary"></div>
+              <p class="text-muted mt-2 mb-0">Chargement du détail...</p>
+            </div>
+
+            <!-- Onglet Informations -->
+            <div *ngIf="!loadingEditDetail && editTab === 'infos'">
+              <form [formGroup]="editForm">
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Client *</label>
+                  <select class="form-select" formControlName="client_id"
+                    [class.is-invalid]="editSubmitted && editForm.get('client_id')?.invalid">
+                    <option value="">— Choisir un client —</option>
+                    <option *ngFor="let c of clients" [value]="c.id">{{ c.name }}</option>
+                  </select>
+                  <div class="invalid-feedback">Client requis</div>
                 </div>
-                <div class="col-6">
-                  <label class="form-label fw-semibold">Remise (%)</label>
-                  <input type="number" class="form-control" formControlName="remise" min="0" max="100" placeholder="0" />
+                <div class="row g-3">
+                  <div class="col-6">
+                    <label class="form-label fw-semibold">Taxe (%)</label>
+                    <input type="number" class="form-control" formControlName="tax" min="0" max="100" placeholder="0" />
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label fw-semibold">Remise (%)</label>
+                    <input type="number" class="form-control" formControlName="remise" min="0" max="100" placeholder="0" />
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- Onglet Lignes -->
+            <div *ngIf="!loadingEditDetail && editTab === 'lignes'">
+
+              <!-- Lignes existantes -->
+              <div class="table-responsive mb-3" *ngIf="editLines.length; else noLines">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Produit</th>
+                      <th class="text-center" style="width:120px">Quantité</th>
+                      <th class="text-end">PU</th>
+                      <th class="text-end">Total</th>
+                      <th style="width:50px"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let line of editLines; let i = index" [class.table-warning]="line.isNew">
+                      <td>
+                        <span class="fw-semibold">{{ line.produit }}</span>
+                        <span *ngIf="line.isNew" class="badge bg-warning text-dark ms-1 small">Nouveau</span>
+                      </td>
+                      <td class="text-center">
+                        <input type="number" class="form-control form-control-sm text-center"
+                          [(ngModel)]="line.qte" min="1"
+                          [max]="line.isNew ? getEditStock(line.produitId) : getEditStock(line.produitId)"
+                          style="width:80px; margin:auto" />
+                      </td>
+                      <td class="text-end text-muted small">{{ line.pv | cfa }}</td>
+                      <td class="text-end fw-semibold">{{ (line.qte * line.pv) | cfa }}</td>
+                      <td class="text-center">
+                        <button class="btn btn-sm btn-outline-danger" (click)="removeEditLine(i)" title="Supprimer cette ligne">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr class="table-light fw-bold">
+                      <td colspan="3" class="text-end">Total HT</td>
+                      <td class="text-end text-primary">{{ editMontantTotal | cfa }}</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <ng-template #noLines>
+                <p class="text-muted text-center py-3">Aucune ligne — ajoutez un produit ci-dessous</p>
+              </ng-template>
+
+              <!-- Ajouter un produit -->
+              <div class="p-3 bg-light rounded border">
+                <h6 class="fw-semibold mb-2"><i class="fas fa-plus-circle me-2 text-success"></i>Ajouter un produit</h6>
+                <div class="row g-2 align-items-end">
+                  <div class="col">
+                    <label class="form-label small mb-1">Produit</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="editNewProductId">
+                      <option [ngValue]="null">— Choisir —</option>
+                      <option *ngFor="let p of editProduits" [ngValue]="p.id">
+                        {{ p.name }} — stock : {{ getEditStock(p.id) }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="col-auto">
+                    <label class="form-label small mb-1">Quantité</label>
+                    <input type="number" class="form-control form-control-sm" [(ngModel)]="editNewQty" min="1" style="width:80px" />
+                  </div>
+                  <div class="col-auto">
+                    <button class="btn btn-sm btn-success" (click)="addEditLine()" [disabled]="!editNewProductId || editNewQty < 1">
+                      <i class="fas fa-plus me-1"></i>Ajouter
+                    </button>
+                  </div>
                 </div>
               </div>
-            </form>
+            </div>
+
           </div>
+
           <div class="modal-footer">
             <button class="btn btn-outline-secondary" (click)="closeEditModal()">Annuler</button>
-            <button class="btn btn-primary" (click)="submitEdit()" [disabled]="savingEdit">
+            <button class="btn btn-primary" (click)="submitEdit()" [disabled]="savingEdit || loadingEditDetail">
               <span *ngIf="savingEdit" class="spinner-border spinner-border-sm me-2"></span>
               <i *ngIf="!savingEdit" class="fas fa-save me-2"></i>
-              {{ savingEdit ? 'Enregistrement...' : 'Enregistrer' }}
+              {{ savingEdit ? 'Enregistrement...' : 'Enregistrer les modifications' }}
             </button>
           </div>
         </div>

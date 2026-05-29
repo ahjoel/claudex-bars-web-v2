@@ -5,11 +5,24 @@ import { RouterModule, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FactureService } from '../../../core/services/facture.service';
 import { ClientService } from '../../../core/services/client.service';
+import { MouvementService } from '../../../core/services/mouvement.service';
+import { ProduitService } from '../../../core/services/produit.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { DataTableComponent, DataTableColumn, DataTableAction } from '../../../shared/components/datatable/datatable.component';
 import { Facture } from '../../../core/models/entities.model';
 import { CfaPipe } from '../../../shared/pipes/cfa.pipe';
+
+interface EditLine {
+  id?: number;
+  produit: string;
+  produitId: number;
+  qte: number;
+  originalQte: number;
+  pv: number;
+  stock: string;
+  isNew: boolean;
+}
 
 @Component({
   selector: 'app-factures-list',
@@ -44,6 +57,15 @@ export class FacturesListComponent implements OnInit, OnDestroy {
   editSubmitted = false;
   savingEdit = false;
   editForm: FormGroup;
+  editTab: 'infos' | 'lignes' = 'infos';
+  editZone = '';
+  editLines: EditLine[] = [];
+  deletedLineIds: number[] = [];
+  editProduits: any[] = [];
+  editStockMap = new Map<number, number>();
+  editNewProductId: number | null = null;
+  editNewQty = 1;
+  loadingEditDetail = false;
   clients: any[] = [];
 
   columns: DataTableColumn[] = [
@@ -64,6 +86,8 @@ export class FacturesListComponent implements OnInit, OnDestroy {
   constructor(
     private factureService: FactureService,
     private clientService: ClientService,
+    private mouvementService: MouvementService,
+    private produitService: ProduitService,
     private authService: AuthService,
     private snackbar: SnackbarService,
     private route: ActivatedRoute,
@@ -297,12 +321,50 @@ export class FacturesListComponent implements OnInit, OnDestroy {
     this.editFacture = facture;
     this.editSubmitted = false;
     this.savingEdit = false;
+    this.editTab = 'infos';
+    this.editLines = [];
+    this.deletedLineIds = [];
+    this.editNewProductId = null;
+    this.editNewQty = 1;
+    this.editZone = (facture as any).stock?.includes('RC') ? 'RC' : 'R1';
+
     this.editForm.patchValue({
       client_id: (facture as any).client_id ?? '',
       tax: (facture as any).taxe ?? facture.tax ?? 0,
       remise: facture.remise ?? 0
     });
+
+    this.loadingEditDetail = true;
     this.showEditModal = true;
+
+    Promise.allSettled([
+      this.factureService.detail(facture.code).toPromise(),
+      this.mouvementService.stockDispo(this.editZone).toPromise(),
+      this.produitService.list(0, 999, this.editZone).toPromise()
+    ]).then(([detailRes, stockRes, produitsRes]) => {
+      if (detailRes.status === 'fulfilled') {
+        const rows: any[] = (detailRes.value as any)?.data?.facturesDetail ?? [];
+        this.editLines = rows.map(r => ({
+          id: r.id,
+          produit: r.produit,
+          produitId: r.produitId,
+          qte: Number(r.qte),
+          originalQte: Number(r.qte),
+          pv: Number(r.pv),
+          stock: r.stock,
+          isNew: false
+        }));
+      }
+      if (stockRes.status === 'fulfilled') {
+        const items: any[] = (stockRes.value as any)?.data?.data ?? [];
+        this.editStockMap.clear();
+        items.forEach(i => { if (i.id) this.editStockMap.set(i.id, i.st_dispo ?? 0); });
+      }
+      if (produitsRes.status === 'fulfilled') {
+        this.editProduits = (produitsRes.value as any)?.data?.data ?? [];
+      }
+      this.loadingEditDetail = false;
+    });
   }
 
   closeEditModal(): void {
@@ -311,22 +373,88 @@ export class FacturesListComponent implements OnInit, OnDestroy {
     this.savingEdit = false;
   }
 
+  getEditStock(produitId: number): number {
+    const base = this.editStockMap.get(produitId) ?? 0;
+    const inLines = this.editLines
+      .filter(l => l.produitId === produitId && !l.isNew)
+      .reduce((s, l) => s + l.originalQte, 0);
+    return base + inLines;
+  }
+
+  addEditLine(): void {
+    if (!this.editNewProductId || this.editNewQty < 1) return;
+    const produit = this.editProduits.find(p => p.id === Number(this.editNewProductId));
+    if (!produit) return;
+    const dispo = this.getEditStock(produit.id);
+    if (this.editNewQty > dispo) {
+      this.snackbar.error(`Stock insuffisant pour ${produit.name} (${dispo} dispo)`);
+      return;
+    }
+    this.editLines.push({
+      produit: produit.name,
+      produitId: produit.id,
+      qte: this.editNewQty,
+      originalQte: 0,
+      pv: produit.pv ?? 0,
+      stock: this.editZone,
+      isNew: true
+    });
+    this.editNewProductId = null;
+    this.editNewQty = 1;
+  }
+
+  removeEditLine(index: number): void {
+    const line = this.editLines[index];
+    if (line.id) this.deletedLineIds.push(line.id);
+    this.editLines.splice(index, 1);
+  }
+
+  get editMontantTotal(): number {
+    return this.editLines.reduce((s, l) => s + l.qte * l.pv, 0);
+  }
+
   submitEdit(): void {
     this.editSubmitted = true;
     if (this.editForm.invalid || !this.editFacture) return;
     this.savingEdit = true;
-    this.factureService.update({
-      id: this.editFacture.id,
+
+    const factureId = this.editFacture.id;
+    const ops: Promise<any>[] = [];
+
+    ops.push(this.factureService.update({
+      id: factureId,
       client_id: Number(this.editForm.value.client_id),
       tax: Number(this.editForm.value.tax ?? 0),
       remise: Number(this.editForm.value.remise ?? 0)
-    }).subscribe({
-      next: () => {
+    }).toPromise());
+
+    this.deletedLineIds.forEach(id => {
+      ops.push(this.mouvementService.delete(id).toPromise());
+    });
+
+    this.editLines.forEach(line => {
+      if (!line.isNew && line.id && line.qte !== line.originalQte) {
+        ops.push(this.mouvementService.update({ id: line.id, qte: line.qte } as any).toPromise());
+      }
+      if (line.isNew) {
+        ops.push(this.factureService.addLigne({
+          productId: line.produitId,
+          facture_id: factureId,
+          stock: line.stock as 'R1' | 'RC',
+          quantity: line.qte
+        }).toPromise());
+      }
+    });
+
+    Promise.allSettled(ops).then(results => {
+      const errors = results.filter(r => r.status === 'rejected');
+      if (errors.length === 0) {
         this.snackbar.success(`Facture ${this.editFacture?.code} modifiée`);
-        this.closeEditModal();
-        this.loadData();
-      },
-      error: () => { this.savingEdit = false; }
+      } else {
+        this.snackbar.error(`Facture modifiée avec ${errors.length} erreur(s)`);
+      }
+      this.closeEditModal();
+      this.loadData();
     });
   }
 
