@@ -369,10 +369,16 @@ export class FacturationComponent implements OnInit, OnDestroy {
 
   generateCode(): void {
     this.generatingCode = true;
-    this.factureService.list(0, 1, this.activeZone).subscribe({
+    this.factureService.list(0, 1000, this.activeZone).subscribe({
       next: (res: any) => {
-        const total: number = res?.data?.pagination?.total ?? (res?.data?.data?.length ?? 0);
-        const num = (total + 1).toString().padStart(4, '0');
+        const factures: any[] = res?.data?.data ?? [];
+        let maxNum = 0;
+        for (const f of factures) {
+          const parts: string[] = (f?.code ?? '').split('/');
+          const n = parseInt(parts[parts.length - 1], 10);
+          if (!isNaN(n) && n > maxNum) maxNum = n;
+        }
+        const num = (maxNum + 1).toString().padStart(4, '0');
         const code = `${this.activeZone}/BAR/${this.currentMonth}/${num}`;
         this.factureForm.patchValue({ code });
         this.generatingCode = false;

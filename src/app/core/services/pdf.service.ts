@@ -46,18 +46,23 @@ export class PdfService {
       headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 9 },
       alternateRowStyles: { fillColor: [241, 245, 249] },
       margin: { left: 25, right: 25 },
-      didDrawPage: (data: any) => {
-        const pageCount = (doc as any).internal.getNumberOfPages();
-        const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
+      didDrawPage: (_data: any) => {
         doc.setFontSize(7);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(148, 163, 184);
         doc.text(COMPANY_ADDRESS, 25, doc.internal.pageSize.getHeight() - 10);
-        doc.setFontSize(8);
-        doc.setTextColor(100, 116, 139);
-        doc.text(`Page ${currentPage} / ${pageCount}`, pageW - 25, doc.internal.pageSize.getHeight() - 10, { align: 'right' });
       }
     });
+
+    const totalPages = (doc as any).internal.getNumberOfPages();
+    const pageH = doc.internal.pageSize.getHeight();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Page ${i} / ${totalPages}`, pageW - 25, pageH - 10, { align: 'right' });
+    }
 
     doc.save(`${filename}.pdf`);
   }
