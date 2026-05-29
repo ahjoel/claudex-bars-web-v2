@@ -10,73 +10,7 @@ import { ModelCategory } from '../../../core/models/entities.model';
   selector: 'app-modeles-list',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, DataTableComponent],
-  template: `
-    <div class="page-header">
-      <div>
-        <h1 class="page-title"><i class="fas fa-tags me-2 text-primary"></i>Catégories / Modèles</h1>
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item">Gestion Bars</li>
-            <li class="breadcrumb-item active">Catégories</li>
-          </ol>
-        </nav>
-      </div>
-      <button class="btn btn-primary" (click)="openModal()">
-        <i class="fas fa-plus me-2"></i>Nouvelle catégorie
-      </button>
-    </div>
-
-    <div class="card-custom">
-      <div class="card-header"><i class="fas fa-list me-2"></i>Liste des catégories ({{ totalRecords }})</div>
-      <div class="card-body p-0">
-        <div class="p-3">
-          <app-datatable
-            [data]="modeles"
-            [columns]="columns"
-            [actions]="actions"
-            [loading]="loading"
-            [totalRecords]="totalRecords"
-            [pageSize]="pageSize"
-            [currentPage]="currentPage"
-            (rowAction)="onAction($event)"
-            (pageChange)="onPageChange($event)"
-          ></app-datatable>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade show d-block" tabindex="-1" *ngIf="showModal" style="background:rgba(0,0,0,0.5)">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header modal-header-custom">
-            <h5 class="modal-title"><i class="fas fa-tag me-2"></i>{{ editingId ? 'Modifier' : 'Nouvelle' }} catégorie</h5>
-            <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
-          </div>
-          <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label">Nom *</label>
-                <input type="text" class="form-control" formControlName="name" placeholder="Nom de la catégorie"
-                  [class.is-invalid]="submitted && form.get('name')?.invalid" />
-                <div class="invalid-feedback">Nom requis</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Description</label>
-                <textarea class="form-control" formControlName="description" rows="3" placeholder="Description..."></textarea>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Annuler</button>
-              <button type="submit" class="btn btn-primary" [disabled]="saving">
-                <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
-                {{ saving ? 'Enregistrement...' : (editingId ? 'Modifier' : 'Enregistrer') }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  `
+  templateUrl: './modeles-list.component.html'
 })
 export class ModelesListComponent implements OnInit {
   modeles: ModelCategory[] = [];

@@ -1,0 +1,83 @@
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><i class="fas fa-exclamation-triangle me-2 text-danger"></i>Factures impayées</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">Statistiques</li>
+            <li class="breadcrumb-item active">Impayées</li>
+          </ol>
+        </nav>
+      </div>
+      <button class="btn btn-outline-primary" (click)="loadStats()">
+        <i class="fas fa-sync me-2"></i>Actualiser
+      </button>
+    </div>
+
+    <!-- Filtres zone -->
+    <div class="d-flex gap-2 mb-4">
+      <button class="btn btn-sm px-4" [class.btn-secondary]="activeZone === ''" [class.btn-outline-secondary]="activeZone !== ''"
+        (click)="setZone('')">
+        <i class="fas fa-list me-1"></i>Toutes zones
+      </button>
+      <button class="btn btn-sm px-4" [class.btn-primary]="activeZone === 'R1'" [class.btn-outline-primary]="activeZone !== 'R1'"
+        (click)="setZone('R1')">
+        <i class="fas fa-warehouse me-1"></i>Zone R1
+      </button>
+      <button class="btn btn-sm px-4" [class.btn-info]="activeZone === 'RC'" [class.btn-outline-info]="activeZone !== 'RC'"
+        (click)="setZone('RC')">
+        <i class="fas fa-boxes me-1"></i>Zone RC
+      </button>
+    </div>
+
+    <!-- KPIs -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="stat-card" style="border-left-color:#dc3545">
+          <div class="stat-number text-danger">{{ filteredStats.length }}</div>
+          <div class="stat-label">Factures impayées{{ activeZone ? ' (' + activeZone + ')' : '' }}</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card" style="border-left-color:#f59e0b">
+          <div class="stat-number text-warning" style="font-size:1rem">{{ totalImpaye | number:'1.0-0' }} FCFA</div>
+          <div class="stat-label">Montant total impayé</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card" style="border-left-color:#6366f1">
+          <div class="stat-number" style="color:#6366f1">{{ r1Count }} / {{ rcCount }}</div>
+          <div class="stat-label">Impayées R1 / RC</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tableau -->
+    <div class="card-custom">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+          <i class="fas fa-list me-2"></i>Liste des factures impayées
+          <span class="badge bg-danger ms-2">{{ filteredStats.length }}</span>
+        </span>
+        <button class="btn btn-sm btn-outline-danger" (click)="downloadPdf()" *ngIf="filteredStats.length" [disabled]="loading">
+          <i class="fas fa-file-pdf me-1"></i>Télécharger PDF
+        </button>
+      </div>
+      <div class="card-body p-0">
+        <div class="p-3">
+          <app-datatable
+            [data]="pagedStats"
+            [columns]="columns"
+            [actions]="[]"
+            [loading]="loading"
+            [totalRecords]="filteredStats.length"
+            [pageSize]="pageSize"
+            [currentPage]="currentPage"
+            (pageChange)="onPageChange($event)"
+          ></app-datatable>
+        </div>
+        <div class="p-3 text-center text-muted small" *ngIf="!loading && !filteredStats.length">
+          <i class="fas fa-check-circle text-success me-2"></i>Aucune facture impayée{{ activeZone ? ' pour la zone ' + activeZone : '' }}.
+        </div>
+      </div>
+    </div>

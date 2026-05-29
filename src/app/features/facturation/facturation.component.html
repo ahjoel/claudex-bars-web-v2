@@ -1,0 +1,253 @@
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><i class="fas fa-cash-register me-2 text-primary"></i>Facturation</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item active">Facturation — Zone {{ activeZone }}</li>
+          </ol>
+        </nav>
+      </div>
+      <!-- Sélecteur de zone -->
+      <div class="d-flex gap-2">
+        <button class="btn px-4 py-2 fw-bold" [class.btn-primary]="activeZone === 'R1'" [class.btn-outline-primary]="activeZone !== 'R1'"
+          [disabled]="submitting || (zoneLocked && activeZone !== 'R1')"
+          [style.opacity]="(zoneLocked && activeZone !== 'R1') ? '0.4' : '1'"
+          [style.cursor]="(zoneLocked && activeZone !== 'R1') ? 'not-allowed' : 'pointer'"
+          (click)="switchZone('R1')">
+          <i class="fas fa-warehouse me-2"></i>Zone R1
+        </button>
+        <button class="btn px-4 py-2 fw-bold" [class.btn-info]="activeZone === 'RC'" [class.btn-outline-info]="activeZone !== 'RC'"
+          [disabled]="submitting || (zoneLocked && activeZone !== 'RC')"
+          [style.opacity]="(zoneLocked && activeZone !== 'RC') ? '0.4' : '1'"
+          [style.cursor]="(zoneLocked && activeZone !== 'RC') ? 'not-allowed' : 'pointer'"
+          (click)="switchZone('RC')">
+          <i class="fas fa-warehouse me-2"></i>Zone RC
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading initial -->
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border text-primary"></div>
+      <p class="mt-2 text-muted">Chargement des données...</p>
+    </div>
+
+    <div class="row g-4" *ngIf="!loading">
+
+      <!-- Colonne gauche -->
+      <div class="col-lg-8">
+
+        <!-- Infos facture -->
+        <div class="card-custom mb-4">
+          <div class="card-header">
+            <i class="fas fa-file-invoice me-2"></i>Informations de la facture
+            <span class="badge ms-2" [class.bg-primary]="activeZone === 'R1'" [class.bg-info]="activeZone === 'RC'">
+              Zone {{ activeZone }}
+            </span>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="factureForm">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Code facture *</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control font-monospace bg-light" formControlName="code"
+                      readonly [class.is-invalid]="submitted && factureForm.get('code')?.invalid" />
+                    <button type="button" class="btn btn-outline-secondary" title="Régénérer le code"
+                      (click)="generateCode()" [disabled]="generatingCode">
+                      <span *ngIf="generatingCode" class="spinner-border spinner-border-sm"></span>
+                      <i *ngIf="!generatingCode" class="fas fa-sync-alt"></i>
+                    </button>
+                  </div>
+                  <div class="invalid-feedback d-block" *ngIf="submitted && factureForm.get('code')?.invalid">Code requis</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Client *</label>
+                  <select class="form-select" formControlName="client_id"
+                    [class.is-invalid]="submitted && factureForm.get('client_id')?.invalid">
+                    <option value="">— Choisir un client —</option>
+                    <option *ngFor="let c of clients" [value]="c.id">{{ c.name }}</option>
+                  </select>
+                  <div class="invalid-feedback">Client requis</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Taxe (%)</label>
+                  <input type="number" class="form-control" formControlName="tax" placeholder="0" min="0" max="100" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Remise (%)</label>
+                  <input type="number" class="form-control" formControlName="remise" placeholder="0" min="0" max="100" />
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Catalogue produits -->
+        <div class="card-custom">
+          <div class="card-header">
+            <i class="fas fa-boxes me-2"></i>Produits — Zone {{ activeZone }}
+            <span class="badge bg-secondary ms-2">{{ filteredProduits.length }}</span>
+          </div>
+          <div class="card-body">
+            <!-- Recherche -->
+            <div class="position-relative mb-3">
+              <i class="fas fa-search position-absolute text-muted" style="left:12px;top:50%;transform:translateY(-50%)"></i>
+              <input type="text" class="form-control ps-5" [(ngModel)]="search" placeholder="Rechercher un produit..." />
+              <button *ngIf="search" type="button" class="btn-close position-absolute" style="right:12px;top:50%;transform:translateY(-50%)" (click)="search = ''"></button>
+            </div>
+
+            <!-- Grille produits -->
+            <div class="row g-3" style="max-height:420px;overflow-y:auto">
+              <div class="col-sm-6 col-md-4" *ngFor="let p of filteredProduits">
+                <button type="button" class="w-100 text-start border rounded p-3 btn-produit"
+                  [class.btn-produit-ok]="getStatut(p.id) === 'ok'"
+                  [class.btn-produit-faible]="getStatut(p.id) === 'faible'"
+                  [class.btn-produit-epuise]="getStatut(p.id) === 'epuise'"
+                  [disabled]="getStatut(p.id) === 'epuise' || submitting"
+                  (click)="addToCart(p)">
+                  <div class="d-flex justify-content-between align-items-start mb-1">
+                    <span class="fw-semibold small lh-sm">{{ p.name }}</span>
+                    <span *ngIf="getStatut(p.id) === 'epuise'" class="badge bg-danger ms-1" style="font-size:0.65rem">Épuisé</span>
+                    <span *ngIf="getStatut(p.id) === 'faible'" class="badge bg-warning text-dark ms-1" style="font-size:0.65rem">Faible</span>
+                  </div>
+                  <div class="text-primary fw-bold small">{{ p.pv | cfa }}</div>
+                  <div class="mt-1 d-flex align-items-center gap-2">
+                    <span class="small" [class.text-success]="getStatut(p.id) === 'ok'" [class.text-warning]="getStatut(p.id) === 'faible'" [class.text-danger]="getStatut(p.id) === 'epuise'">
+                      <i class="fas fa-cubes me-1"></i>{{ getStock(p.id) }} en stock
+                    </span>
+                    <span *ngIf="getEnPanier(p.id) > 0" class="small text-muted">· {{ getEnPanier(p.id) }} au panier</span>
+                  </div>
+                </button>
+              </div>
+              <div class="col-12 text-center py-4 text-muted" *ngIf="filteredProduits.length === 0 && !loadingProduits">
+                <i class="fas fa-box-open fs-3 d-block mb-2 opacity-25"></i>
+                <span class="small">{{ search ? 'Aucun produit trouvé pour "' + search + '"' : 'Aucun produit pour la zone ' + activeZone }}</span>
+              </div>
+              <div class="col-12 text-center py-4" *ngIf="loadingProduits">
+                <div class="spinner-border spinner-border-sm text-primary"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Colonne droite -->
+      <div class="col-lg-4">
+
+        <!-- Panier -->
+        <div class="card-custom mb-4">
+          <div class="card-header">
+            <i class="fas fa-shopping-cart me-2"></i>Panier
+            <span class="badge bg-primary ms-auto">{{ cart.length }}</span>
+          </div>
+          <div class="card-body p-0">
+            <div style="max-height:300px;overflow-y:auto">
+              <div class="p-3 text-center text-muted" *ngIf="cart.length === 0">
+                <i class="fas fa-shopping-cart fs-3 d-block mb-2 opacity-25"></i>
+                <span class="small">Panier vide — cliquez sur un produit</span>
+              </div>
+              <div *ngFor="let item of cart; let i = index" class="border-bottom px-3 py-2">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <span class="fw-semibold small">{{ item.produit.name }}</span>
+                  <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2" (click)="removeFromCart(i)">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-2">
+                    <label class="small text-muted mb-0">Qté:</label>
+                    <input type="number" min="1" [max]="getStock(item.produit.id)" [value]="item.quantity"
+                      (change)="updateQty(i, +$any($event.target).value)"
+                      class="form-control form-control-sm text-center" style="width:60px" />
+                    <small class="text-muted">/ {{ getStock(item.produit.id) }}</small>
+                  </div>
+                  <strong class="small text-primary">{{ (item.produit.pv * item.quantity) | cfa }}</strong>
+                </div>
+                <div *ngIf="item.quantity > getStock(item.produit.id)" class="text-danger small mt-1">
+                  <i class="fas fa-exclamation-triangle me-1"></i>Dépasse le stock dispo
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Résumé financier -->
+        <div class="card-custom mb-4">
+          <div class="card-header"><i class="fas fa-calculator me-2"></i>Résumé financier</div>
+          <div class="card-body">
+            <div class="d-flex justify-content-between mb-2 small">
+              <span class="text-muted">Sous-total</span>
+              <span class="fw-semibold">{{ getSousTotal() | cfa }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2 small">
+              <span class="text-muted">Taxe ({{ factureForm.get('tax')?.value || 0 }}%)</span>
+              <span class="fw-semibold">+ {{ getTaxe() | cfa }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2 small">
+              <span class="text-muted">Remise ({{ factureForm.get('remise')?.value || 0 }}%)</span>
+              <span class="fw-semibold text-success">- {{ getRemise() | cfa }}</span>
+            </div>
+            <div class="d-flex justify-content-between pt-2 border-top">
+              <span class="fw-bold">Total TTC</span>
+              <span class="fw-bold fs-6 text-primary">{{ getTotal() | cfa }}</span>
+            </div>
+
+            <div *ngIf="hasStockError()" class="alert alert-danger small mt-3 mb-0 py-2">
+              <i class="fas fa-exclamation-triangle me-1"></i>Corrigez les quantités en rouge.
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+              <button type="button" class="btn btn-outline-secondary btn-sm flex-shrink-0" (click)="resetAll()" [disabled]="submitting">
+                <i class="fas fa-redo"></i>
+              </button>
+              <button type="button" class="btn btn-primary w-100" (click)="creerFacture()"
+                [disabled]="submitting || cart.length === 0 || hasStockError()">
+                <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!submitting" class="fas fa-file-invoice me-2"></i>
+                {{ submitting ? 'Création...' : 'Créer la facture' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Règlement (affiché après création facture) -->
+        <div class="card-custom" *ngIf="factureCreee">
+          <div class="card-header bg-success text-white">
+            <i class="fas fa-check-circle me-2"></i>Facture créée — Encaissement
+          </div>
+          <div class="card-body">
+            <div class="p-3 bg-light rounded mb-3 small">
+              <div class="d-flex justify-content-between mb-1">
+                <span class="text-muted">Facture:</span>
+                <strong>{{ factureCreee.code }}</strong>
+              </div>
+              <div class="d-flex justify-content-between mb-1">
+                <span class="text-muted">Zone:</span>
+                <span class="badge" [class.bg-primary]="activeZone === 'R1'" [class.bg-info]="activeZone === 'RC'">{{ activeZone }}</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span class="text-muted">Total TTC:</span>
+                <strong class="text-success">{{ montantFacture | cfa }}</strong>
+              </div>
+            </div>
+            <form [formGroup]="reglementForm" (ngSubmit)="enregistrerReglement()">
+              <div class="mb-3">
+                <label class="form-label">Montant encaissé (FCFA) *</label>
+                <input type="number" class="form-control form-control-lg" formControlName="total"
+                  [placeholder]="montantFacture"
+                  [class.is-invalid]="reglementSubmitted && reglementForm.get('total')?.invalid" />
+                <div class="invalid-feedback">Montant requis</div>
+              </div>
+              <button type="submit" class="btn btn-success w-100" [disabled]="addingReglement">
+                <span *ngIf="addingReglement" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!addingReglement" class="fas fa-check me-2"></i>
+                {{ addingReglement ? 'Enregistrement...' : 'Confirmer le règlement' }}
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>

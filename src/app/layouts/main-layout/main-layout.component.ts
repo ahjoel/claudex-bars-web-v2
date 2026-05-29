@@ -8,17 +8,6 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
   selector: 'app-main-layout',
   standalone: true,
   imports: [CommonModule, RouterModule, NavbarComponent, SidebarComponent],
-  template: `
-    <app-navbar></app-navbar>
-    <div class="layout-body">
-      <app-sidebar></app-sidebar>
-      <main class="main-content">
-        <router-outlet></router-outlet>
-      </main>
-    </div>
-    <footer class="layout-footer">
-      <span>&copy; 2026 Claudex Bars v2. Tous droits réservés.</span>
-    </footer>
-  `
+  templateUrl: './main-layout.component.html'
 })
 export class MainLayoutComponent {}

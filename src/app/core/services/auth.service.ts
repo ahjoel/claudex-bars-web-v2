@@ -123,6 +123,14 @@ export class AuthService {
     return this.getCurrentUser()?.profile === ROLES.SUPER_ADMIN;
   }
 
+  isAdmin(): boolean {
+    return this.hasAnyRole([ROLES.SUPER_ADMIN, ROLES.ADMINISTRATEUR]);
+  }
+
+  isFacturier(): boolean {
+    return this.hasAnyRole([ROLES.FACTURIER_R1, ROLES.FACTURIER_RC]);
+  }
+
   hasRole(role: string): boolean {
     return this.getCurrentUser()?.profile === role;
   }

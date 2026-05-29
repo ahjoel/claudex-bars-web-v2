@@ -6,16 +6,7 @@ import { LoadingService } from '../../../core/services/loading.service';
   selector: 'app-loader',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="loader-overlay" *ngIf="loadingService.isLoading$ | async">
-      <div class="loader-spinner">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Chargement...</span>
-        </div>
-        <p class="mt-2 text-white small">Chargement...</p>
-      </div>
-    </div>
-  `,
+  templateUrl: './loader.component.html',
   styles: [`
     .loader-overlay {
       position: fixed;

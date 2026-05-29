@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FactureService } from '../../../core/services/facture.service';
+import { ClientService } from '../../../core/services/client.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { DataTableComponent, DataTableColumn, DataTableAction } from '../../../shared/components/datatable/datatable.component';
@@ -14,246 +15,7 @@ import { CfaPipe } from '../../../shared/pipes/cfa.pipe';
   selector: 'app-factures-list',
   standalone: true,
   imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule, DataTableComponent, CfaPipe],
-  template: `
-    <div class="page-header">
-      <div>
-        <h1 class="page-title"><i class="fas fa-file-invoice me-2 text-primary"></i>Factures</h1>
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item">Gestion Bars</li>
-            <li class="breadcrumb-item active">Factures</li>
-          </ol>
-        </nav>
-      </div>
-      <a routerLink="/facturation" class="btn btn-primary">
-        <i class="fas fa-plus me-2"></i>Nouvelle facture
-      </a>
-    </div>
-
-    <!-- Zone tabs -->
-    <div class="d-flex gap-2 mb-4">
-      <button class="btn btn-sm px-4" [class.btn-primary]="activeZone === ''" [class.btn-outline-secondary]="activeZone !== ''"
-        [disabled]="activeZone === 'R1' || activeZone === 'RC'"
-        [style.opacity]="(activeZone === 'R1' || activeZone === 'RC') ? '0.4' : '1'"
-        [style.cursor]="(activeZone === 'R1' || activeZone === 'RC') ? 'not-allowed' : 'pointer'"
-        (click)="filterByZone('')">
-        <i class="fas fa-list me-1"></i>Toutes
-      </button>
-      <button class="btn btn-sm px-4" [class.btn-primary]="activeZone === 'R1'" [class.btn-outline-primary]="activeZone !== 'R1'"
-        [disabled]="activeZone === 'RC'"
-        [style.opacity]="activeZone === 'RC' ? '0.4' : '1'"
-        [style.cursor]="activeZone === 'RC' ? 'not-allowed' : 'pointer'"
-        (click)="filterByZone('R1')">
-        <i class="fas fa-warehouse me-1"></i>Zone R1
-      </button>
-      <button class="btn btn-sm px-4" [class.btn-info]="activeZone === 'RC'" [class.btn-outline-info]="activeZone !== 'RC'"
-        [disabled]="activeZone === 'R1'"
-        [style.opacity]="activeZone === 'R1' ? '0.4' : '1'"
-        [style.cursor]="activeZone === 'R1' ? 'not-allowed' : 'pointer'"
-        (click)="filterByZone('RC')">
-        <i class="fas fa-warehouse me-1"></i>Zone RC
-      </button>
-    </div>
-
-    <!-- Filtre date -->
-    <div class="card-custom mb-4">
-      <div class="card-body py-2">
-        <div class="d-flex align-items-end gap-3 flex-wrap">
-          <div>
-            <label class="form-label mb-1 small fw-semibold">Date début</label>
-            <input type="date" class="form-control form-control-sm" [(ngModel)]="dateDebut" />
-          </div>
-          <div>
-            <label class="form-label mb-1 small fw-semibold">Date fin</label>
-            <input type="date" class="form-control form-control-sm" [(ngModel)]="dateFin" />
-          </div>
-          <button class="btn btn-sm btn-primary" (click)="searchByDate()" [disabled]="!dateDebut || !dateFin">
-            <i class="fas fa-search me-1"></i>Rechercher
-          </button>
-          <button class="btn btn-sm btn-outline-secondary" (click)="resetDateFilter()" *ngIf="dateDebut || dateFin">
-            <i class="fas fa-times me-1"></i>Réinitialiser
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Summary cards -->
-    <div class="row g-3 mb-4">
-      <div class="col-md-4">
-        <div class="stat-card" style="border-left-color: #0d6efd;">
-          <div class="stat-number text-primary">{{ totalRecords }}</div>
-          <div class="stat-label">Total factures{{ activeZone ? ' (' + activeZone + ')' : '' }}</div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="stat-card" style="border-left-color: #198754;">
-          <div class="stat-number text-success">{{ montantTotal | cfa }}</div>
-          <div class="stat-label">Montant total HT</div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="stat-card" style="border-left-color: #dc3545;">
-          <div class="stat-number text-danger">{{ impayees }}</div>
-          <div class="stat-label">Factures impayées</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card-custom">
-      <div class="card-header"><i class="fas fa-list me-2"></i>Liste des factures ({{ totalRecords }})</div>
-      <div class="card-body p-0">
-        <div class="p-3">
-          <app-datatable
-            [data]="factures"
-            [columns]="columns"
-            [actions]="actions"
-            [loading]="loading"
-            [totalRecords]="totalRecords"
-            [pageSize]="pageSize"
-            [currentPage]="currentPage"
-            (rowAction)="onAction($event)"
-            (pageChange)="onPageChange($event)"
-          ></app-datatable>
-        </div>
-      </div>
-    </div>
-
-    <!-- Detail Modal -->
-    <div class="modal fade show d-block" tabindex="-1" *ngIf="showDetail" style="background:rgba(0,0,0,0.5)" (click)="showDetail = false">
-      <div class="modal-dialog modal-xl" (click)="$event.stopPropagation()">
-        <div class="modal-content">
-          <div class="modal-header modal-header-custom">
-            <h5 class="modal-title"><i class="fas fa-file-invoice me-2"></i>Détail facture — {{ selectedFacture?.code }}</h5>
-            <button type="button" class="btn-close btn-close-white" (click)="showDetail = false"></button>
-          </div>
-          <div class="modal-body">
-            <div class="row g-3" *ngIf="selectedFacture">
-              <div class="col-md-6">
-                <div class="p-3 bg-light rounded">
-                  <h6 class="fw-bold text-primary mb-3">Informations facture</h6>
-                  <div class="row g-2">
-                    <div class="col-6 text-muted small">Code:</div>
-                    <div class="col-6 fw-bold">{{ selectedFacture.code }}</div>
-                    <div class="col-6 text-muted small">Client:</div>
-                    <div class="col-6">{{ selectedFacture.client || selectedFacture.clientName || '-' }}</div>
-                    <div class="col-6 text-muted small">Montant facture:</div>
-                    <div class="col-6 fw-bold text-primary">{{ computeMontant(selectedFacture) | cfa }}</div>
-                    <div class="col-6 text-muted small">Taxe:</div>
-                    <div class="col-6">{{ selectedFacture.tax ?? 0 }} %</div>
-                    <div class="col-6 text-muted small">Remise:</div>
-                    <div class="col-6">{{ selectedFacture.remise ?? 0 }} %</div>
-                    <div class="col-6 text-muted small">Date:</div>
-                    <div class="col-6">{{ selectedFacture.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="p-3 bg-light rounded">
-                  <h6 class="fw-bold text-primary mb-3">Mouvements</h6>
-                  <div *ngIf="selectedFacture.mouvements?.length; else noMvt">
-                    <div class="table-responsive">
-                      <table class="table table-sm mb-0">
-                        <thead><tr><th>Produit</th><th>Qté</th><th>PV</th><th>Zone</th></tr></thead>
-                        <tbody>
-                          <tr *ngFor="let m of selectedFacture.mouvements">
-                            <td>{{ m.produit || m.produitCode || m.produitId }}</td>
-                            <td>{{ m.qte }}</td>
-                            <td>{{ m.pv | cfa }}</td>
-                            <td>
-                              <span class="badge" [class.bg-primary]="m.stock === 'R1'" [class.bg-info]="m.stock === 'RC'">
-                                {{ m.stock }}
-                              </span>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                  <ng-template #noMvt><p class="text-muted text-center">Aucun mouvement</p></ng-template>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-outline-secondary" (click)="showDetail = false">Fermer</button>
-            <button class="btn btn-primary" (click)="printFacture()" *ngIf="selectedFacture?.mouvements?.length">
-              <i class="fas fa-print me-2"></i>Imprimer
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Règlement Modal -->
-    <div class="modal fade show d-block" tabindex="-1" *ngIf="showReglementModal" style="background:rgba(0,0,0,0.5)" (click)="closeReglementModal()">
-      <div class="modal-dialog modal-sm" (click)="$event.stopPropagation()">
-        <div class="modal-content">
-          <div class="modal-header modal-header-custom">
-            <h5 class="modal-title"><i class="fas fa-money-bill-wave me-2"></i>Règlement</h5>
-            <button type="button" class="btn-close btn-close-white" (click)="closeReglementModal()"></button>
-          </div>
-          <div class="modal-body">
-            <!-- Info facture -->
-            <div class="p-2 bg-light rounded mb-3 small">
-              <div class="d-flex justify-content-between mb-1">
-                <span class="text-muted">Facture:</span>
-                <strong>{{ reglementFacture?.code }}</strong>
-              </div>
-              <div class="d-flex justify-content-between mb-1">
-                <span class="text-muted">Client:</span>
-                <span>{{ reglementFacture?.client || reglementFacture?.clientName || '-' }}</span>
-              </div>
-              <div class="d-flex justify-content-between">
-                <span class="text-muted">Montant HT:</span>
-                <strong class="text-success">{{ computeMontant(reglementFacture) | cfa }}</strong>
-              </div>
-            </div>
-
-            <!-- Zone R1 / RC -->
-            <div class="mb-3">
-              <label class="form-label fw-bold">Zone de règlement</label>
-              <div class="d-flex gap-2">
-                <button type="button" class="btn w-50 py-2 fw-bold"
-                  [class.btn-primary]="reglementZone === 'R1'"
-                  [class.btn-outline-primary]="reglementZone !== 'R1'"
-                  [disabled]="activeZone === 'RC'"
-                  [style.opacity]="activeZone === 'RC' ? '0.4' : '1'"
-                  (click)="reglementZone = 'R1'">
-                  <i class="fas fa-warehouse me-1"></i>R1
-                </button>
-                <button type="button" class="btn w-50 py-2 fw-bold"
-                  [class.btn-info]="reglementZone === 'RC'"
-                  [class.btn-outline-info]="reglementZone !== 'RC'"
-                  [disabled]="activeZone === 'R1'"
-                  [style.opacity]="activeZone === 'R1' ? '0.4' : '1'"
-                  (click)="reglementZone = 'RC'">
-                  <i class="fas fa-warehouse me-1"></i>RC
-                </button>
-              </div>
-            </div>
-
-            <form [formGroup]="reglementForm">
-              <div class="mb-3">
-                <label class="form-label">Montant encaissé (FCFA) *</label>
-                <input type="number" class="form-control form-control-lg" formControlName="total"
-                  [placeholder]="reglementFacture?.montantHT || 0"
-                  [class.is-invalid]="reglementSubmitted && reglementForm.get('total')?.invalid" />
-                <div class="invalid-feedback">Montant requis</div>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-outline-secondary" (click)="closeReglementModal()">Annuler</button>
-            <button class="btn btn-success" (click)="submitReglement()" [disabled]="savingReglement">
-              <span *ngIf="savingReglement" class="spinner-border spinner-border-sm me-2"></span>
-              <i *ngIf="!savingReglement" class="fas fa-check me-2"></i>
-              {{ savingReglement ? 'Enregistrement...' : 'Régler — ' + reglementZone }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `
+  templateUrl: './factures-list.component.html'
 })
 export class FacturesListComponent implements OnInit, OnDestroy {
   private zoneSub?: Subscription;
@@ -277,6 +39,13 @@ export class FacturesListComponent implements OnInit, OnDestroy {
   savingReglement = false;
   reglementForm: FormGroup;
 
+  showEditModal = false;
+  editFacture: Facture | null = null;
+  editSubmitted = false;
+  savingEdit = false;
+  editForm: FormGroup;
+  clients: any[] = [];
+
   columns: DataTableColumn[] = [
     { field: 'code', header: 'Code', width: '120px' },
     { field: 'client', header: 'Client', sortable: true, format: v => v || '-' },
@@ -294,6 +63,7 @@ export class FacturesListComponent implements OnInit, OnDestroy {
 
   constructor(
     private factureService: FactureService,
+    private clientService: ClientService,
     private authService: AuthService,
     private snackbar: SnackbarService,
     private route: ActivatedRoute,
@@ -302,8 +72,20 @@ export class FacturesListComponent implements OnInit, OnDestroy {
     this.reglementForm = this.fb.group({
       total: ['', [Validators.required, Validators.min(1)]]
     });
+    this.editForm = this.fb.group({
+      client_id: ['', Validators.required],
+      tax: [0, [Validators.min(0), Validators.max(100)]],
+      remise: [0, [Validators.min(0), Validators.max(100)]]
+    });
     this.actions = [
       { label: 'Voir détail', icon: 'fas fa-eye', color: 'blue', action: 'view' },
+      { label: 'Modifier', icon: 'fas fa-edit', color: 'orange', action: 'edit',
+        hidden: (row: any) => {
+          if (this.authService.isAdmin()) return false;
+          if (this.authService.isFacturier()) return row.statut === 'payée';
+          return true;
+        }
+      },
       { label: 'Régler', icon: 'fas fa-money-bill-wave', color: 'green', action: 'pay',
         hidden: (row: any) => row.statut === 'payée' },
       { label: 'Supprimer', icon: 'fas fa-trash', color: 'red', action: 'delete',
@@ -313,6 +95,7 @@ export class FacturesListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadImpayees();
+    this.loadClients();
     this.zoneSub = this.route.queryParamMap.subscribe(params => {
       const zone = params.get('zone') || '';
       this.activeZone = zone;
@@ -355,6 +138,12 @@ export class FacturesListComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadClients(): void {
+    this.clientService.list(0, 999).subscribe({
+      next: (res: any) => { this.clients = res?.data?.data ?? []; }
+    });
+  }
+
   loadImpayees(): void {
     this.factureService.countImpayees().subscribe({
       next: (res: any) => { this.impayees = res?.data?.factureTotalImpayeeNumber ?? res?.data?.count ?? 0; }
@@ -394,6 +183,8 @@ export class FacturesListComponent implements OnInit, OnDestroy {
           this.showDetail = true;
         }
       });
+    } else if (e.action === 'edit') {
+      this.openEditModal(e.row);
     } else if (e.action === 'pay') {
       this.openReglementModal(e.row);
     } else if (e.action === 'delete' && confirm(`Supprimer la facture "${e.row.code}" ?`)) {
@@ -500,6 +291,43 @@ export class FacturesListComponent implements OnInit, OnDestroy {
     this.showReglementModal = false;
     this.reglementFacture = null;
     this.savingReglement = false;
+  }
+
+  openEditModal(facture: Facture): void {
+    this.editFacture = facture;
+    this.editSubmitted = false;
+    this.savingEdit = false;
+    this.editForm.patchValue({
+      client_id: (facture as any).client_id ?? '',
+      tax: (facture as any).taxe ?? facture.tax ?? 0,
+      remise: facture.remise ?? 0
+    });
+    this.showEditModal = true;
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.editFacture = null;
+    this.savingEdit = false;
+  }
+
+  submitEdit(): void {
+    this.editSubmitted = true;
+    if (this.editForm.invalid || !this.editFacture) return;
+    this.savingEdit = true;
+    this.factureService.update({
+      id: this.editFacture.id,
+      client_id: Number(this.editForm.value.client_id),
+      tax: Number(this.editForm.value.tax ?? 0),
+      remise: Number(this.editForm.value.remise ?? 0)
+    }).subscribe({
+      next: () => {
+        this.snackbar.success(`Facture ${this.editFacture?.code} modifiée`);
+        this.closeEditModal();
+        this.loadData();
+      },
+      error: () => { this.savingEdit = false; }
+    });
   }
 
   submitReglement(): void {

@@ -7,11 +7,7 @@ import { SnackbarComponent } from './shared/components/snackbar/snackbar.compone
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, LoaderComponent, SnackbarComponent],
-  template: `
-    <app-loader></app-loader>
-    <app-snackbar></app-snackbar>
-    <router-outlet></router-outlet>
-  `,
+  templateUrl: './app.html',
   styles: []
 })
 export class App {

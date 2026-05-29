@@ -1,0 +1,138 @@
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><i class="fas fa-warehouse me-2 text-primary"></i>Gestion du Stock</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item active">Gestion Stock</li>
+          </ol>
+        </nav>
+      </div>
+      <button class="btn btn-primary" (click)="openModal()">
+        <i class="fas fa-plus me-2"></i>Nouveau mouvement
+      </button>
+    </div>
+
+    <!-- Onglets R1 / RC -->
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab === 'R1'"
+          [disabled]="activeTab === 'RC'"
+          [class.disabled]="activeTab === 'RC'"
+          (click)="switchTab('R1')">
+          <i class="fas fa-warehouse me-1"></i>Zone R1
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab === 'RC'"
+          [disabled]="activeTab === 'R1'"
+          [class.disabled]="activeTab === 'R1'"
+          (click)="switchTab('RC')">
+          <i class="fas fa-boxes me-1"></i>Zone RC
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab === 'dispo'" (click)="switchTab('dispo')">
+          <i class="fas fa-chart-bar me-1"></i>Disponible
+        </button>
+      </li>
+    </ul>
+
+    <!-- Stock Dispo Tab -->
+    <div *ngIf="activeTab === 'dispo'">
+      <div class="card-custom">
+        <div class="card-header"><i class="fas fa-chart-pie me-2"></i>Stock disponible par produit ({{ dispoTotal }})</div>
+        <div class="card-body p-0">
+          <div class="p-3">
+            <app-datatable
+              [data]="stockDispoPage"
+              [columns]="dispoColumns"
+              [actions]="[]"
+              [loading]="loading"
+              [totalRecords]="dispoTotal"
+              [pageSize]="dispoPageSize"
+              [currentPage]="dispoPage"
+              (pageChange)="onDispoPageChange($event)"
+            ></app-datatable>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mouvements Tab -->
+    <div *ngIf="activeTab === 'R1' || activeTab === 'RC'">
+      <div class="card-custom">
+        <div class="card-header"><i class="fas fa-exchange-alt me-2"></i>Mouvements de stock ({{ totalRecords }})</div>
+        <div class="card-body p-0">
+          <div class="p-3">
+            <app-datatable
+              [data]="mouvements"
+              [columns]="columns"
+              [actions]="actions"
+              [loading]="loading"
+              [totalRecords]="totalRecords"
+              [pageSize]="pageSize"
+              [currentPage]="currentPage"
+              (rowAction)="onAction($event)"
+              (pageChange)="onPageChange($event)"
+            ></app-datatable>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade show d-block" tabindex="-1" *ngIf="showModal" style="background:rgba(0,0,0,0.5)">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header modal-header-custom">
+            <h5 class="modal-title">
+              <i class="fas fa-arrow-circle-down me-2"></i>
+              {{ editingId ? 'Modifier le mouvement' : 'Entrée de stock' }} — Zone {{ modalZone }}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+          </div>
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Code *</label>
+                  <input type="text" class="form-control" formControlName="code" placeholder="Code mouvement"
+                    [class.is-invalid]="submitted && form.get('code')?.invalid" />
+                  <div class="invalid-feedback">Code requis</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Type</label>
+                  <input type="text" class="form-control" value="Entrée (ADD)" disabled />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Zone de stock</label>
+                  <input type="text" class="form-control" [value]="'Zone ' + modalZone" disabled />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Produit *</label>
+                  <select class="form-select" formControlName="produitId" [class.is-invalid]="submitted && form.get('produitId')?.invalid">
+                    <option value="">Sélectionner...</option>
+                    <option *ngFor="let p of produits" [value]="p.id">{{ p.name }} ({{ p.code }})</option>
+                  </select>
+                  <div class="invalid-feedback">Produit requis</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Quantité *</label>
+                  <input type="number" class="form-control" formControlName="qte" placeholder="0"
+                    [class.is-invalid]="submitted && form.get('qte')?.invalid" />
+                  <div class="invalid-feedback">Quantité requise</div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Annuler</button>
+              <button type="submit" class="btn btn-primary" [disabled]="saving">
+                <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+                {{ saving ? 'Enregistrement...' : (editingId ? 'Modifier' : 'Enregistrer') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>

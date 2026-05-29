@@ -6,21 +6,7 @@ import { SnackbarService, SnackbarMessage } from '../../../core/services/snackba
   selector: 'app-snackbar',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="snackbar-container">
-      <div
-        *ngFor="let msg of snackbar.messages$ | async"
-        class="snackbar-item"
-        [ngClass]="'snackbar-' + msg.type"
-      >
-        <i [class]="getIcon(msg.type)" class="me-2"></i>
-        <span>{{ msg.message }}</span>
-        <button class="snackbar-close" (click)="snackbar.remove(msg.id)">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-    </div>
-  `,
+  templateUrl: './snackbar.component.html',
   styles: [`
     .snackbar-container {
       position: fixed;

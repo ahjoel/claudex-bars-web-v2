@@ -1,0 +1,32 @@
+
+    <aside class="sidebar no-print" [class.show]="layoutService.sidebarOpen$ | async">
+      <ng-container *ngFor="let section of navigation">
+        <div class="sidebar-title" *ngIf="section.title">{{ section.title }}</div>
+        <ul class="nav flex-column">
+          <li class="nav-item" *ngFor="let item of section.items">
+            <!-- Parent with children -->
+            <ng-container *ngIf="item.children?.length; else simpleLink">
+              <a class="nav-link nav-parent" (click)="toggleMenu(item.title)">
+                <i [class]="item.icon || 'fas fa-circle'" class="me-2"></i>
+                <span class="flex-grow-1">{{ item.title }}</span>
+                <i class="fas fa-chevron-right toggle-icon small" [class.rotated]="isExpanded(item.title)"></i>
+              </a>
+              <ul class="nav flex-column nav-submenu" *ngIf="isExpanded(item.title)">
+                <li class="nav-item" *ngFor="let child of item.children">
+                  <a class="nav-link" [routerLink]="child.path" [class.active]="isRouteActive(child.path)" (click)="onMobileNavClick()">
+                    <i class="fas fa-chevron-right small me-2 opacity-50"></i>{{ child.title }}
+                  </a>
+                </li>
+              </ul>
+            </ng-container>
+            <!-- Simple link -->
+            <ng-template #simpleLink>
+              <a class="nav-link" [routerLink]="item.path" [queryParams]="item.queryParams || null"
+                 [class.active]="isRouteActive(item.path, item.queryParams)" (click)="onMobileNavClick()">
+                <i [class]="item.icon || 'fas fa-circle'" class="me-2"></i>{{ item.title }}
+              </a>
+            </ng-template>
+          </li>
+        </ul>
+      </ng-container>
+    </aside>

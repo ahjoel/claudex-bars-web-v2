@@ -1,0 +1,138 @@
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">
+          <i class="fas fa-box me-2 text-primary"></i>Produits
+          <span *ngIf="zone" class="badge ms-2" [class.bg-primary]="zone === 'R1'" [class.bg-success]="zone === 'RC'" style="font-size:0.7rem;vertical-align:middle">Zone {{ zone }}</span>
+        </h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">Gestion Bars</li>
+            <li class="breadcrumb-item active">Produits{{ zone ? ' — Zone ' + zone : '' }}</li>
+          </ol>
+        </nav>
+      </div>
+      <button class="btn btn-primary" (click)="openModal()">
+        <i class="fas fa-plus me-2"></i>Nouveau produit
+      </button>
+    </div>
+
+    <!-- Zone tabs -->
+    <div class="d-flex gap-2 mb-4">
+      <button class="btn btn-sm px-4" [class.btn-primary]="zone === ''" [class.btn-outline-secondary]="zone !== ''"
+        [disabled]="zone === 'R1' || zone === 'RC'"
+        [style.opacity]="(zone === 'R1' || zone === 'RC') ? '0.4' : '1'"
+        [style.cursor]="(zone === 'R1' || zone === 'RC') ? 'not-allowed' : 'pointer'"
+        (click)="filterByZone('')">
+        <i class="fas fa-list me-1"></i>Toutes
+      </button>
+      <button class="btn btn-sm px-4" [class.btn-primary]="zone === 'R1'" [class.btn-outline-primary]="zone !== 'R1'"
+        [disabled]="zone === 'RC'"
+        [style.opacity]="zone === 'RC' ? '0.4' : '1'"
+        [style.cursor]="zone === 'RC' ? 'not-allowed' : 'pointer'"
+        (click)="filterByZone('R1')">
+        <i class="fas fa-warehouse me-1"></i>Zone R1
+      </button>
+      <button class="btn btn-sm px-4" [class.btn-info]="zone === 'RC'" [class.btn-outline-info]="zone !== 'RC'"
+        [disabled]="zone === 'R1'"
+        [style.opacity]="zone === 'R1' ? '0.4' : '1'"
+        [style.cursor]="zone === 'R1' ? 'not-allowed' : 'pointer'"
+        (click)="filterByZone('RC')">
+        <i class="fas fa-warehouse me-1"></i>Zone RC
+      </button>
+    </div>
+
+    <div class="card-custom">
+      <div class="card-header"><i class="fas fa-list me-2"></i>Catalogue produits{{ zone ? ' — Zone ' + zone : '' }} ({{ totalRecords }})</div>
+      <div class="card-body p-0">
+        <div class="p-3">
+          <app-datatable
+            [data]="produits"
+            [columns]="columns"
+            [actions]="actions"
+            [loading]="loading"
+            [totalRecords]="totalRecords"
+            [pageSize]="pageSize"
+            [currentPage]="currentPage"
+            (rowAction)="onAction($event)"
+            (pageChange)="onPageChange($event)"
+          ></app-datatable>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade show d-block" tabindex="-1" *ngIf="showModal" style="background:rgba(0,0,0,0.5)">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header modal-header-custom">
+            <h5 class="modal-title"><i class="fas fa-box me-2"></i>{{ editingId ? 'Modifier' : 'Nouveau' }} produit</h5>
+            <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+          </div>
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Code *</label>
+                  <input type="text" class="form-control" formControlName="code" placeholder="Code produit"
+                    [class.is-invalid]="submitted && form.get('code')?.invalid" />
+                  <div class="invalid-feedback">Code requis</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Nom *</label>
+                  <input type="text" class="form-control" formControlName="name" placeholder="Nom du produit"
+                    [class.is-invalid]="submitted && form.get('name')?.invalid" />
+                  <div class="invalid-feedback">Nom requis</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Catégorie *</label>
+                  <select class="form-select" formControlName="modelId" [class.is-invalid]="submitted && form.get('modelId')?.invalid">
+                    <option value="">Sélectionner...</option>
+                    <option *ngFor="let m of modeles" [value]="m.id">{{ m.name }}</option>
+                  </select>
+                  <div class="invalid-feedback">Catégorie requise</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Fournisseur</label>
+                  <select class="form-select" formControlName="fournisseurId">
+                    <option value="">Sélectionner...</option>
+                    <option *ngFor="let f of fournisseurs" [value]="f.id">{{ f.name }}</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Prix de vente (FCFA) *</label>
+                  <input type="number" class="form-control" formControlName="pv" placeholder="0"
+                    [class.is-invalid]="submitted && form.get('pv')?.invalid" />
+                  <div class="invalid-feedback">Prix requis</div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Stock minimum</label>
+                  <input type="number" class="form-control" formControlName="stock_min" placeholder="0" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Zone *</label>
+                  <select class="form-select" formControlName="stock"
+                    [class.is-invalid]="submitted && form.get('stock')?.invalid">
+                    <option value="">Sélectionner...</option>
+                    <option value="R1">Zone R1</option>
+                    <option value="RC">Zone RC</option>
+                  </select>
+                  <div class="invalid-feedback">Zone requise</div>
+                  <small *ngIf="zone" class="text-muted"><i class="fas fa-lock me-1"></i>Fixée par la navigation (Zone {{ zone }})</small>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Description</label>
+                  <textarea class="form-control" formControlName="description" rows="2" placeholder="Description..."></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Annuler</button>
+              <button type="submit" class="btn btn-primary" [disabled]="saving">
+                <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+                {{ saving ? 'Enregistrement...' : (editingId ? 'Modifier' : 'Enregistrer') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
