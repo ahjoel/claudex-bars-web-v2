@@ -36,8 +36,6 @@ const ALL_SCREENS = [
 
 const ZONE_R1_SCREENS = [
   '/dashboard',
-  '/gestion-bars/produits/R1',
-  '/gestion-stock/R1',
   '/facturation/R1',
   '/gestion-bars/factures/R1',
   '/gestion-bars/reglements/R1',
@@ -45,8 +43,6 @@ const ZONE_R1_SCREENS = [
 
 const ZONE_RC_SCREENS = [
   '/dashboard',
-  '/gestion-bars/produits/RC',
-  '/gestion-stock/RC',
   '/facturation/RC',
   '/gestion-bars/factures/RC',
   '/gestion-bars/reglements/RC',
@@ -54,6 +50,9 @@ const ZONE_RC_SCREENS = [
 
 const MANAGER_SCREENS = ALL_SCREENS.filter(
   s => s !== '/admin/users' && s !== '/admin/settings'
+    && !s.startsWith('/facturation')
+    && !s.startsWith('/gestion-bars/factures')
+    && !s.startsWith('/gestion-bars/reglements')
 );
 
 export const SCREENS_BY_ROLE: Record<string, string[]> = {
