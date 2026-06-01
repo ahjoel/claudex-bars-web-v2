@@ -147,9 +147,10 @@ export class AuthService {
   private getEffectiveScreens(): string[] {
     const user = this.getCurrentUser();
     if (!user) return [];
-    if (user.screens?.length) return user.screens;
     const profile = user.profile ?? '';
-    return SCREENS_BY_ROLE[profile] ?? [];
+    const staticScreens = SCREENS_BY_ROLE[profile];
+    if (staticScreens) return staticScreens;
+    return user.screens ?? [];
   }
 
   canAccessScreen(path: string): boolean {

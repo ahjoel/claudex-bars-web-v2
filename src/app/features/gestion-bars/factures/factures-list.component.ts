@@ -171,9 +171,21 @@ export class FacturesListComponent implements OnInit, OnDestroy {
   }
 
   loadImpayees(): void {
-    this.factureService.countImpayees(this.activeZone || undefined, this.dateDebut || undefined, this.dateFin || undefined).subscribe({
-      next: (res: any) => { this.impayees = res?.data?.factureTotalImpayeeNumber ?? res?.data?.count ?? 0; }
-    });
+    const zone = this.activeZone || undefined;
+    const debut = this.dateDebut || undefined;
+    const fin = this.dateFin || undefined;
+    if (this.authService.isFacturier() && this.activeZone) {
+      this.factureService.list(0, 9999, zone, debut, fin).subscribe({
+        next: (res: any) => {
+          const all: any[] = res?.data?.data || [];
+          this.impayees = all.filter((f: any) => f.statut !== 'payée').length;
+        }
+      });
+    } else {
+      this.factureService.countImpayees(zone, debut, fin).subscribe({
+        next: (res: any) => { this.impayees = res?.data?.factureTotalImpayeeNumber ?? res?.data?.count ?? 0; }
+      });
+    }
   }
 
   onPageChange(e: { page: number; size: number }): void {

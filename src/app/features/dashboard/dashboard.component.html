@@ -14,7 +14,7 @@
     <!-- Stat Cards -->
     <div class="row g-3 mb-4">
       <div class="col-12 col-sm-6 col-xl-3" *ngFor="let stat of stats">
-        <a [routerLink]="stat.link" class="text-decoration-none">
+        <a [routerLink]="stat.link" [queryParams]="stat.queryParams || null" class="text-decoration-none">
           <div class="stat-card h-100" [style.border-left-color]="stat.color">
             <div class="d-flex align-items-start justify-content-between">
               <div>
@@ -46,12 +46,12 @@
       <div class="card-body p-0">
         <!-- Tabs -->
         <ul class="nav nav-tabs px-3 pt-2">
-          <li class="nav-item">
+          <li class="nav-item" *ngIf="facturierZone !== 'RC'">
             <button class="nav-link" [class.active]="reglTab === 'R1'" (click)="switchReglTab('R1')">
               <i class="fas fa-warehouse me-1"></i>Zone R1
             </button>
           </li>
-          <li class="nav-item">
+          <li class="nav-item" *ngIf="facturierZone !== 'R1'">
             <button class="nav-link" [class.active]="reglTab === 'RC'" (click)="switchReglTab('RC')">
               <i class="fas fa-boxes me-1"></i>Zone RC
             </button>
