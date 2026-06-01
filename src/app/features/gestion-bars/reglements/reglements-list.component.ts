@@ -26,8 +26,9 @@ export class ReglementsListComponent implements OnInit, OnDestroy {
   currentPage = 0;
   totalRecu = 0;
   totalPayer = 0;
-  dateDebut = '';
-  dateFin = '';
+  readonly today = new Date().toISOString().split('T')[0];
+  dateDebut = this.today;
+  dateFin = this.today;
 
   columns: DataTableColumn[] = [
     { field: 'codeFacture', header: 'Facture', format: v => v || '-' },
@@ -41,7 +42,7 @@ export class ReglementsListComponent implements OnInit, OnDestroy {
     const base: DataTableAction[] = [
       { label: 'Imprimer reçu', icon: 'fas fa-print', color: 'blue', action: 'print' }
     ];
-    if (this.authService.isSuperAdmin()) {
+    if (this.authService.isAdmin()) {
       base.push({ label: 'Supprimer', icon: 'fas fa-trash', color: 'red', action: 'delete' });
     }
     return base;
@@ -75,7 +76,7 @@ export class ReglementsListComponent implements OnInit, OnDestroy {
 
   searchByDate(): void { this.currentPage = 0; this.loadData(); }
 
-  resetDateFilter(): void { this.dateDebut = ''; this.dateFin = ''; this.currentPage = 0; this.loadData(); }
+  resetDateFilter(): void { this.dateDebut = this.today; this.dateFin = this.today; this.currentPage = 0; this.loadData(); }
 
   loadData(): void {
     this.loading = true;

@@ -40,8 +40,9 @@ export class FacturesListComponent implements OnInit, OnDestroy {
   montantTotal = 0;
   impayees = 0;
   activeZone = '';
-  dateDebut = '';
-  dateFin = '';
+  readonly today = new Date().toISOString().split('T')[0];
+  dateDebut = this.today;
+  dateFin = this.today;
   showDetail = false;
   selectedFacture: Facture | null = null;
 
@@ -118,7 +119,6 @@ export class FacturesListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadImpayees();
     this.loadClients();
     this.zoneSub = this.route.queryParamMap.subscribe(params => {
       const zone = params.get('zone') || '';
@@ -126,6 +126,7 @@ export class FacturesListComponent implements OnInit, OnDestroy {
       if (zone === 'R1' || zone === 'RC') this.reglementZone = zone;
       this.currentPage = 0;
       this.loadData();
+      this.loadImpayees();
     });
   }
 
@@ -136,6 +137,7 @@ export class FacturesListComponent implements OnInit, OnDestroy {
     this.currentPage = 0;
     if (zone === 'R1' || zone === 'RC') this.reglementZone = zone;
     this.loadData();
+    this.loadImpayees();
   }
 
   computeMontant(f: any): number {
@@ -145,9 +147,9 @@ export class FacturesListComponent implements OnInit, OnDestroy {
     return Number(f.totalfacture ?? f.montantHT ?? 0);
   }
 
-  searchByDate(): void { this.currentPage = 0; this.loadData(); }
+  searchByDate(): void { this.currentPage = 0; this.loadData(); this.loadImpayees(); }
 
-  resetDateFilter(): void { this.dateDebut = ''; this.dateFin = ''; this.currentPage = 0; this.loadData(); }
+  resetDateFilter(): void { this.dateDebut = this.today; this.dateFin = this.today; this.currentPage = 0; this.loadData(); this.loadImpayees(); }
 
   loadData(): void {
     this.loading = true;
@@ -169,7 +171,7 @@ export class FacturesListComponent implements OnInit, OnDestroy {
   }
 
   loadImpayees(): void {
-    this.factureService.countImpayees().subscribe({
+    this.factureService.countImpayees(this.activeZone || undefined, this.dateDebut || undefined, this.dateFin || undefined).subscribe({
       next: (res: any) => { this.impayees = res?.data?.factureTotalImpayeeNumber ?? res?.data?.count ?? 0; }
     });
   }

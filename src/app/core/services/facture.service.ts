@@ -43,8 +43,12 @@ export class FactureService {
     return this.api.post('factures/delete', { id });
   }
 
-  countImpayees(): Observable<ApiResponse<any>> {
-    return this.api.post('factures/impayee/count', {});
+  countImpayees(zone?: string, dateDebut?: string, dateFin?: string): Observable<ApiResponse<any>> {
+    const body: any = {};
+    if (zone) body.stock = zone;
+    if (dateDebut) body.date_debut = dateDebut;
+    if (dateFin) body.date_fin = dateFin;
+    return this.api.post('factures/impayee/count', body);
   }
 
   statParProducteur(stock: string, data: { date_debut: string; date_fin: string }): Observable<ApiResponse<any>> {
