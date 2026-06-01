@@ -49,7 +49,7 @@ const ZONE_RC_SCREENS = [
 ];
 
 const MANAGER_SCREENS = ALL_SCREENS.filter(
-  s => s !== '/admin/users' && s !== '/admin/settings'
+  s => s !== '/admin/users' && s !== '/admin/settings' && s !== '/admin/roles'
     && !s.startsWith('/facturation')
     && !s.startsWith('/gestion-bars/factures')
     && !s.startsWith('/gestion-bars/reglements')
