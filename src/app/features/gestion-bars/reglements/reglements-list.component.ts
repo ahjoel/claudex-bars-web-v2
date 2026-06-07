@@ -153,7 +153,7 @@ export class ReglementsListComponent implements OnInit, OnDestroy {
   .title{font-size:12px;font-weight:bold;text-align:center;margin:6px 0}
   .row{display:flex;justify-content:space-between;margin:3px 0}
   .bold{font-weight:bold}
-  @media print{body{width:auto}}
+  @media print{body{width:auto}*{color:#000!important;background:transparent!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style></head><body>
   <div class="centered">
     <h2>CLAUDEX-BAR</h2>

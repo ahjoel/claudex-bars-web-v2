@@ -271,7 +271,7 @@ export class FacturesListComponent implements OnInit, OnDestroy {
   .right{text-align:right}
   h2{font-size:13px;font-weight:bold;margin-bottom:2px}
   .total-row td{border-top:1px solid #000;font-weight:bold}
-  @media print{body{width:auto}}
+  @media print{body{width:auto}*{color:#000!important;background:transparent!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style></head><body>
   <div class="centered">
     <h2>CLAUDEX-BAR</h2>
