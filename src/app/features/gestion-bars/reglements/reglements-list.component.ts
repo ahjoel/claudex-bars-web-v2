@@ -141,19 +141,27 @@ export class ReglementsListComponent implements OnInit, OnDestroy {
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reçu ${numRecu}</title>
 <style>
-  *{font-size:11px;font-family:'Courier New',monospace;margin:0;padding:0}
-  body{width:300px;margin:0 auto;padding:10px}
+  *{font-size:13px;font-family:'Courier New',monospace;margin:0;padding:0;color:#000;font-weight:600}
+  body{width:300px;margin:0 auto;padding:10px;background:#fff}
   .centered{text-align:center}
-  .sep{border-top:1px dashed #000;margin:6px 0}
+  .sep{border-top:2px dashed #000;margin:6px 0}
   table{width:100%;border-collapse:collapse}
-  th,td{padding:2px 4px;vertical-align:top}
-  th{border-top:1px solid #000;border-bottom:1px solid #000}
+  th,td{padding:3px 4px;vertical-align:top}
+  th{border-top:2px solid #000;border-bottom:2px solid #000;font-weight:800;font-size:13px}
   .right{text-align:right}
-  h2{font-size:13px;font-weight:bold;margin-bottom:2px}
-  .title{font-size:12px;font-weight:bold;text-align:center;margin:6px 0}
-  .row{display:flex;justify-content:space-between;margin:3px 0}
-  .bold{font-weight:bold}
-  @media print{body{width:auto}*{color:#000!important;background:transparent!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+  h2{font-size:15px;font-weight:900;margin-bottom:2px;letter-spacing:1px}
+  p{font-size:12px;font-weight:600;line-height:1.5}
+  .title{font-size:14px;font-weight:900;text-align:center;margin:6px 0;letter-spacing:1px}
+  .row{display:flex;justify-content:space-between;margin:3px 0;font-size:13px}
+  .bold{font-weight:900}
+  @media print{
+    *{color:#000!important;background:transparent!important;font-weight:600!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    h2{font-weight:900!important;font-size:15px!important}
+    .title{font-weight:900!important;font-size:14px!important}
+    .bold{font-weight:900!important}
+    th{font-weight:800!important}
+    body{width:auto}
+  }
 </style></head><body>
   <div class="centered">
     <h2>CLAUDEX-BAR</h2>

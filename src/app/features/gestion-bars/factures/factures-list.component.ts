@@ -261,17 +261,25 @@ export class FacturesListComponent implements OnInit, OnDestroy {
     const ttcRow    = (tax > 0 || remise > 0) ? `<tr style="font-weight:bold;border-top:1px solid #000"><td colspan="3">TOTAL TTC</td><td class="right">${fmt(ttc)} F</td></tr>` : '';
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Facture ${f.code}</title>
 <style>
-  *{font-size:11px;font-family:'Courier New',monospace;margin:0;padding:0}
-  body{width:300px;margin:0 auto;padding:10px}
+  *{font-size:13px;font-family:'Courier New',monospace;margin:0;padding:0;color:#000;font-weight:600}
+  body{width:300px;margin:0 auto;padding:10px;background:#fff}
   .centered{text-align:center}
-  .sep{border-top:1px dashed #000;margin:6px 0}
+  .sep{border-top:2px dashed #000;margin:6px 0}
   table{width:100%;border-collapse:collapse}
-  th,td{padding:2px 4px;vertical-align:top}
-  th{border-top:1px solid #000;border-bottom:1px solid #000}
+  th,td{padding:3px 4px;vertical-align:top}
+  th{border-top:2px solid #000;border-bottom:2px solid #000;font-weight:800;font-size:13px}
   .right{text-align:right}
-  h2{font-size:13px;font-weight:bold;margin-bottom:2px}
-  .total-row td{border-top:1px solid #000;font-weight:bold}
-  @media print{body{width:auto}*{color:#000!important;background:transparent!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+  h2{font-size:15px;font-weight:900;margin-bottom:2px;letter-spacing:1px}
+  p{font-size:12px;font-weight:600;line-height:1.5}
+  strong{font-weight:900}
+  .total-row td{border-top:2px solid #000;font-weight:900;font-size:14px}
+  @media print{
+    *{color:#000!important;background:transparent!important;font-weight:600!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    h2{font-weight:900!important;font-size:15px!important}
+    th{font-weight:800!important}
+    .total-row td{font-weight:900!important;font-size:14px!important}
+    body{width:auto}
+  }
 </style></head><body>
   <div class="centered">
     <h2>CLAUDEX-BAR</h2>
