@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -22,28 +22,8 @@ interface CartItem {
   imports: [CommonModule, ReactiveFormsModule, FormsModule, CfaPipe],
   templateUrl: './facturation.component.html',
   styles: [`
-    .btn-produit {
-      background: #fff;
-      transition: all .15s;
-      border-color: #dee2e6 !important;
-    }
-    .btn-produit-ok:hover:not(:disabled) {
-      border-color: #0d6efd !important;
-      background: #f0f5ff;
-    }
-    .btn-produit-faible {
-      border-color: #ffc107 !important;
-      background: #fffbf0;
-    }
-    .btn-produit-faible:hover:not(:disabled) {
-      border-color: #e0a800 !important;
-      background: #fff3cd;
-    }
-    .btn-produit-epuise {
-      opacity: .55;
-      cursor: not-allowed;
-      background: #f8f9fa;
-    }
+    .form-control[type=button]:focus { box-shadow: none; }
+    ul li button:not(:disabled):hover { background: #f0f5ff; color: #0d6efd; }
   `]
 })
 export class FacturationComponent implements OnInit, OnDestroy {
@@ -60,6 +40,11 @@ export class FacturationComponent implements OnInit, OnDestroy {
   submitted = false;
   reglementSubmitted = false;
   addingReglement = false;
+
+  clientSearch = '';
+  clientDropdownOpen = false;
+  productDropdownOpen = false;
+  selectedClient: Client | null = null;
 
   factureCreee: Facture | null = null;
   montantFacture = 0;
@@ -80,6 +65,12 @@ export class FacturationComponent implements OnInit, OnDestroy {
     return this.produits.filter(p => p.name.toLowerCase().includes(q) || p.code?.toLowerCase().includes(q));
   }
 
+  get filteredClients(): Client[] {
+    const q = this.clientSearch.trim().toLowerCase();
+    if (!q) return this.clients;
+    return this.clients.filter(c => c.name.toLowerCase().includes(q));
+  }
+
   constructor(
     private factureService: FactureService,
     private clientService: ClientService,
@@ -87,7 +78,8 @@ export class FacturationComponent implements OnInit, OnDestroy {
     private mouvementService: MouvementService,
     private snackbar: SnackbarService,
     private fb: FormBuilder,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private elRef: ElementRef
   ) {
     this.factureForm = this.fb.group({
       code: ['', Validators.required],
@@ -113,6 +105,28 @@ export class FacturationComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void { this.zoneSub?.unsubscribe(); }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.elRef.nativeElement.contains(event.target)) {
+      this.clientDropdownOpen = false;
+      this.productDropdownOpen = false;
+    }
+  }
+
+  selectClient(client: Client): void {
+    this.selectedClient = client;
+    this.clientSearch = '';
+    this.clientDropdownOpen = false;
+    this.factureForm.patchValue({ client_id: client.id });
+  }
+
+  clearClient(): void {
+    this.selectedClient = null;
+    this.clientSearch = '';
+    this.clientDropdownOpen = false;
+    this.factureForm.patchValue({ client_id: '' });
+  }
 
   generateCode(): void {
     this.generatingCode = true;
@@ -195,6 +209,7 @@ export class FacturationComponent implements OnInit, OnDestroy {
     this.activeZone = zone;
     this.cart = [];
     this.search = '';
+    this.productDropdownOpen = false;
     this.loadProduits();
     this.generateCode();
   }
@@ -298,6 +313,8 @@ export class FacturationComponent implements OnInit, OnDestroy {
         this.submitting = false;
         this.cart = [];
         this.submitted = false;
+        this.selectedClient = null;
+        this.clientSearch = '';
         this.factureForm.reset({ tax: 0, remise: 0 });
         this.generateCode();
         return;
@@ -346,6 +363,10 @@ export class FacturationComponent implements OnInit, OnDestroy {
     this.cart = [];
     this.search = '';
     this.submitted = false;
+    this.selectedClient = null;
+    this.clientSearch = '';
+    this.clientDropdownOpen = false;
+    this.productDropdownOpen = false;
     this.factureForm.reset({ tax: 0, remise: 0 });
     this.generateCode();
   }

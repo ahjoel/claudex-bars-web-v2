@@ -64,12 +64,48 @@
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Client *</label>
-                  <select class="form-select" formControlName="client_id"
-                    [class.is-invalid]="submitted && factureForm.get('client_id')?.invalid">
-                    <option value="">— Choisir un client —</option>
-                    <option *ngFor="let c of clients" [value]="c.id">{{ c.name }}</option>
-                  </select>
-                  <div class="invalid-feedback">Client requis</div>
+                  <div class="position-relative">
+                    <button type="button"
+                      class="form-control text-start d-flex justify-content-between align-items-center"
+                      [class.is-invalid]="submitted && factureForm.get('client_id')?.invalid"
+                      [class.border-primary]="clientDropdownOpen"
+                      (click)="clientDropdownOpen = !clientDropdownOpen; clientSearch = ''">
+                      <span [class.text-muted]="!selectedClient">
+                        {{ selectedClient ? selectedClient.name : '— Choisir un client —' }}
+                      </span>
+                      <span class="d-flex align-items-center gap-1">
+                        <i *ngIf="selectedClient" class="fas fa-times text-muted small"
+                          (click)="$event.stopPropagation(); clearClient()"></i>
+                        <i class="fas fa-chevron-down text-muted small"></i>
+                      </span>
+                    </button>
+                    <div *ngIf="clientDropdownOpen"
+                      class="position-absolute w-100 bg-white border rounded shadow-sm"
+                      style="z-index:1050;top:100%;left:0">
+                      <div class="p-2 border-bottom">
+                        <div class="position-relative">
+                          <i class="fas fa-search position-absolute text-muted small"
+                            style="left:8px;top:50%;transform:translateY(-50%)"></i>
+                          <input type="text" class="form-control form-control-sm ps-4"
+                            [(ngModel)]="clientSearch" [ngModelOptions]="{standalone:true}"
+                            placeholder="Rechercher un client..." autofocus />
+                        </div>
+                      </div>
+                      <ul class="list-unstyled m-0" style="max-height:200px;overflow-y:auto">
+                        <li *ngFor="let c of filteredClients">
+                          <button type="button"
+                            class="btn btn-link btn-sm w-100 text-start px-3 py-2 text-decoration-none"
+                            [class.text-primary]="selectedClient?.id === c.id"
+                            [class.fw-semibold]="selectedClient?.id === c.id"
+                            (click)="selectClient(c)">{{ c.name }}</button>
+                        </li>
+                        <li *ngIf="filteredClients.length === 0"
+                          class="px-3 py-2 text-muted small text-center">Aucun client trouvé</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="invalid-feedback d-block"
+                    *ngIf="submitted && factureForm.get('client_id')?.invalid">Client requis</div>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Taxe (%)</label>
@@ -84,49 +120,70 @@
           </div>
         </div>
 
-        <!-- Catalogue produits -->
+        <!-- Sélection produits -->
         <div class="card-custom">
           <div class="card-header">
-            <i class="fas fa-boxes me-2"></i>Produits — Zone {{ activeZone }}
-            <span class="badge bg-secondary ms-2">{{ filteredProduits.length }}</span>
+            <i class="fas fa-boxes me-2"></i>Sélectionner des Produits — Zone {{ activeZone }}
           </div>
           <div class="card-body">
-            <!-- Recherche -->
-            <div class="position-relative mb-3">
-              <i class="fas fa-search position-absolute text-muted" style="left:12px;top:50%;transform:translateY(-50%)"></i>
-              <input type="text" class="form-control ps-5" [(ngModel)]="search" placeholder="Rechercher un produit..." />
-              <button *ngIf="search" type="button" class="btn-close position-absolute" style="right:12px;top:50%;transform:translateY(-50%)" (click)="search = ''"></button>
-            </div>
-
-            <!-- Grille produits -->
-            <div class="row g-3" style="max-height:420px;overflow-y:auto">
-              <div class="col-sm-6 col-md-4" *ngFor="let p of filteredProduits">
-                <button type="button" class="w-100 text-start border rounded p-3 btn-produit"
-                  [class.btn-produit-ok]="getStatut(p.id) === 'ok'"
-                  [class.btn-produit-faible]="getStatut(p.id) === 'faible'"
-                  [class.btn-produit-epuise]="getStatut(p.id) === 'epuise'"
-                  [disabled]="getStatut(p.id) === 'epuise' || submitting"
-                  (click)="addToCart(p)">
-                  <div class="d-flex justify-content-between align-items-start mb-1">
-                    <span class="fw-semibold small lh-sm">{{ p.name }}</span>
-                    <span *ngIf="getStatut(p.id) === 'epuise'" class="badge bg-danger ms-1" style="font-size:0.65rem">Épuisé</span>
-                    <span *ngIf="getStatut(p.id) === 'faible'" class="badge bg-warning text-dark ms-1" style="font-size:0.65rem">Faible</span>
+            <div class="position-relative">
+              <button type="button"
+                class="form-control text-start d-flex align-items-center gap-2"
+                [class.border-primary]="productDropdownOpen"
+                (click)="productDropdownOpen = !productDropdownOpen; search = ''">
+                <i class="fas fa-search text-muted small"></i>
+                <span class="text-muted">Rechercher et ajouter un produit...</span>
+                <i class="fas fa-chevron-down text-muted small ms-auto"
+                  [class.fa-chevron-up]="productDropdownOpen"></i>
+              </button>
+              <div *ngIf="productDropdownOpen"
+                class="position-absolute w-100 bg-white border rounded shadow-sm"
+                style="z-index:1050;top:100%;left:0">
+                <div class="p-2 border-bottom">
+                  <div class="position-relative">
+                    <i class="fas fa-search position-absolute text-muted small"
+                      style="left:8px;top:50%;transform:translateY(-50%)"></i>
+                    <input type="text" class="form-control form-control-sm ps-4"
+                      [(ngModel)]="search" [ngModelOptions]="{standalone:true}"
+                      placeholder="Rechercher un produit..." autofocus />
                   </div>
-                  <div class="text-primary fw-bold small">{{ p.pv | cfa }}</div>
-                  <div class="mt-1 d-flex align-items-center gap-2">
-                    <span class="small" [class.text-success]="getStatut(p.id) === 'ok'" [class.text-warning]="getStatut(p.id) === 'faible'" [class.text-danger]="getStatut(p.id) === 'epuise'">
-                      <i class="fas fa-cubes me-1"></i>{{ getStock(p.id) }} en stock
-                    </span>
-                    <span *ngIf="getEnPanier(p.id) > 0" class="small text-muted">· {{ getEnPanier(p.id) }} au panier</span>
-                  </div>
-                </button>
-              </div>
-              <div class="col-12 text-center py-4 text-muted" *ngIf="filteredProduits.length === 0 && !loadingProduits">
-                <i class="fas fa-box-open fs-3 d-block mb-2 opacity-25"></i>
-                <span class="small">{{ search ? 'Aucun produit trouvé pour "' + search + '"' : 'Aucun produit pour la zone ' + activeZone }}</span>
-              </div>
-              <div class="col-12 text-center py-4" *ngIf="loadingProduits">
-                <div class="spinner-border spinner-border-sm text-primary"></div>
+                </div>
+                <ul class="list-unstyled m-0" style="max-height:280px;overflow-y:auto">
+                  <li *ngFor="let p of filteredProduits">
+                    <button type="button"
+                      class="w-100 text-start px-3 py-2 border-0 bg-transparent d-flex justify-content-between align-items-center"
+                      [class.opacity-50]="getStatut(p.id) === 'epuise'"
+                      [style.cursor]="getStatut(p.id) === 'epuise' ? 'not-allowed' : 'pointer'"
+                      [disabled]="getStatut(p.id) === 'epuise' || submitting"
+                      (click)="addToCart(p)"
+                      style="transition:.15s">
+                      <div>
+                        <span class="fw-semibold small d-block">{{ p.name }}</span>
+                        <span class="small text-primary font-monospace">{{ p.pv | cfa }}</span>
+                      </div>
+                      <div class="d-flex align-items-center gap-2">
+                        <span *ngIf="getEnPanier(p.id) > 0" class="small text-primary fw-semibold">
+                          {{ getEnPanier(p.id) }} au panier
+                        </span>
+                        <span *ngIf="getStatut(p.id) === 'epuise'" class="badge bg-danger" style="font-size:.65rem">Épuisé</span>
+                        <span *ngIf="getStatut(p.id) === 'faible'" class="badge bg-warning text-dark" style="font-size:.65rem">
+                          {{ getStock(p.id) }} · Faible
+                        </span>
+                        <span *ngIf="getStatut(p.id) === 'ok'" class="small text-success">
+                          {{ getStock(p.id) }} dispo
+                        </span>
+                      </div>
+                    </button>
+                  </li>
+                  <li *ngIf="filteredProduits.length === 0 && !loadingProduits"
+                    class="px-3 py-4 text-center text-muted small">
+                    <i class="fas fa-search-minus d-block fs-5 mb-1"></i>
+                    {{ search ? 'Aucun produit trouvé pour "' + search + '"' : 'Aucun produit pour la zone ' + activeZone }}
+                  </li>
+                  <li *ngIf="loadingProduits" class="px-3 py-3 text-center">
+                    <div class="spinner-border spinner-border-sm text-primary"></div>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
