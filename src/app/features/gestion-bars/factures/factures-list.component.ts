@@ -106,15 +106,16 @@ export class FacturesListComponent implements OnInit, OnDestroy {
       { label: 'Voir détail', icon: 'fas fa-eye', color: 'blue', action: 'view' },
       { label: 'Modifier', icon: 'fas fa-edit', color: 'orange', action: 'edit',
         hidden: (row: any) => {
+          if (row.statut === 'payée') return true;
           if (this.authService.isAdmin()) return false;
-          if (this.authService.isFacturier()) return row.statut === 'payée';
+          if (this.authService.isFacturier()) return false;
           return true;
         }
       },
       { label: 'Régler', icon: 'fas fa-money-bill-wave', color: 'green', action: 'pay',
         hidden: (row: any) => row.statut === 'payée' },
       { label: 'Supprimer', icon: 'fas fa-trash', color: 'red', action: 'delete',
-        hidden: () => !this.authService.isSuperAdmin() }
+        hidden: (row: any) => !this.authService.isSuperAdmin() || row.statut === 'payée' }
     ];
   }
 

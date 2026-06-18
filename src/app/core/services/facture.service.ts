@@ -43,6 +43,10 @@ export class FactureService {
     return this.api.post('factures/delete', { id });
   }
 
+  getLastCode(zone: string, year: number, month: number): Observable<ApiResponse<any>> {
+    return this.api.post('factures/last-code', { zone, year, month });
+  }
+
   countImpayees(zone?: string, dateDebut?: string, dateFin?: string): Observable<ApiResponse<any>> {
     const body: any = {};
     if (zone) body.stock = zone;
