@@ -10,11 +10,12 @@ export class PdfService {
 
   private ascii(text: string): string {
     return text
-      .replace(/[àâä]/g, 'a').replace(/[éèêë]/g, 'e').replace(/[îï]/g, 'i')
-      .replace(/[ôö]/g, 'o').replace(/[ùûü]/g, 'u').replace(/ç/g, 'c')
-      .replace(/[ÀÂÄÁÃÅ]/g, 'A').replace(/[ÉÈÊË]/g, 'E').replace(/[ÎÏ]/g, 'I')
-      .replace(/[ÔÖ]/g, 'O').replace(/[ÙÛÜÚ]/g, 'U').replace(/Ç/g, 'C')
-      .replace(/→/g, '->').replace(/—/g, '-').replace(/[^\x00-\x7F]/g, '?');
+      .replace(/\u2192/g, '->')   // →
+      .replace(/\u2014/g, '-')    // —
+      .replace(/\u2013/g, '-')    // –
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\x00-\x7F]/g, '?');
   }
 
   generateStatPdf(
