@@ -14,12 +14,47 @@
       </button>
     </div>
 
+    <!-- Filtre zone -->
+    <div class="card-custom mb-4">
+      <div class="card-header"><i class="fas fa-filter me-2"></i>Filtrer par zone</div>
+      <div class="card-body">
+        <div class="d-flex gap-2">
+          <button type="button" class="btn fw-bold px-4"
+            [class.btn-secondary]="activeZone === 'tous'"
+            [class.btn-outline-secondary]="activeZone !== 'tous'"
+            (click)="setZone('tous')" [disabled]="loading">
+            <i class="fas fa-layer-group me-1"></i>Toutes zones
+          </button>
+          <button type="button" class="btn fw-bold px-4"
+            [class.btn-primary]="activeZone === 'R1'"
+            [class.btn-outline-primary]="activeZone !== 'R1'"
+            (click)="setZone('R1')" [disabled]="loading">
+            <i class="fas fa-warehouse me-1"></i>R1
+          </button>
+          <button type="button" class="btn fw-bold px-4"
+            [class.btn-info]="activeZone === 'RC'"
+            [class.btn-outline-info]="activeZone !== 'RC'"
+            (click)="setZone('RC')" [disabled]="loading">
+            <i class="fas fa-boxes me-1"></i>RC
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="card-custom">
       <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="fas fa-list me-2"></i>Stock disponible par produit
-          <span class="badge bg-secondary ms-2">{{ allData.length }}</span>
+          <span class="badge ms-2"
+            [class.bg-secondary]="activeZone === 'tous'"
+            [class.bg-primary]="activeZone === 'R1'"
+            [class.bg-info]="activeZone === 'RC'">
+            {{ filteredData.length }}
+          </span>
+          <span class="ms-2 text-muted small" *ngIf="activeZone !== 'tous'">
+            — Zone {{ activeZone }}
+          </span>
         </span>
-        <button class="btn btn-sm btn-outline-danger" (click)="downloadPdf()" *ngIf="allData.length" [disabled]="loading">
+        <button class="btn btn-sm btn-outline-danger" (click)="downloadPdf()" *ngIf="filteredData.length" [disabled]="loading">
           <i class="fas fa-file-pdf me-1"></i>Télécharger PDF
         </button>
       </div>
@@ -30,7 +65,7 @@
             [columns]="columns"
             [actions]="[]"
             [loading]="loading"
-            [totalRecords]="allData.length"
+            [totalRecords]="filteredData.length"
             [pageSize]="pageSize"
             [currentPage]="currentPage"
             (pageChange)="onPageChange($event)"

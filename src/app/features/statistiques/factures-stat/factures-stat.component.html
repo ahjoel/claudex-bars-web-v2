@@ -22,13 +22,13 @@
               <button type="button" class="btn w-50 fw-bold"
                 [class.btn-primary]="filterForm.get('stock')?.value === 'R1'"
                 [class.btn-outline-primary]="filterForm.get('stock')?.value !== 'R1'"
-                (click)="filterForm.get('stock')?.setValue('R1')">
+                (click)="setZone('R1')" [disabled]="loading">
                 <i class="fas fa-warehouse me-1"></i>R1
               </button>
               <button type="button" class="btn w-50 fw-bold"
                 [class.btn-info]="filterForm.get('stock')?.value === 'RC'"
                 [class.btn-outline-info]="filterForm.get('stock')?.value !== 'RC'"
-                (click)="filterForm.get('stock')?.setValue('RC')">
+                (click)="setZone('RC')" [disabled]="loading">
                 <i class="fas fa-boxes me-1"></i>RC
               </button>
             </div>
@@ -54,22 +54,28 @@
 
     <!-- KPIs -->
     <div class="row g-3 mb-4" *ngIf="allStats.length">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <div class="stat-card" style="border-left-color:#0d6efd">
           <div class="stat-number text-primary">{{ allStats.length }}</div>
           <div class="stat-label">Producteurs Zone {{ filterForm.get('stock')?.value }}</div>
         </div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <div class="stat-card" style="border-left-color:#198754">
           <div class="stat-number text-success">{{ totalQte }}</div>
           <div class="stat-label">Quantité totale vendue</div>
         </div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <div class="stat-card" style="border-left-color:#f59e0b">
           <div class="stat-number text-warning" style="font-size:1.1rem">{{ totalMontant | number:'1.0-0' }} FCFA</div>
           <div class="stat-label">Montant total vendu</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card" [style.border-left-color]="totalStockDispo <= 0 ? '#dc3545' : '#6f42c1'">
+          <div class="stat-number" [class.text-danger]="totalStockDispo <= 0" [class.text-purple]="totalStockDispo > 0" style="color: #6f42c1">{{ totalStockDispo }}</div>
+          <div class="stat-label">Stock dispo actuel — Zone {{ filterForm.get('stock')?.value }}</div>
         </div>
       </div>
     </div>

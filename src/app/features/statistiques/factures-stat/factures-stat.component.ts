@@ -22,6 +22,8 @@ export class FacturesStatComponent implements OnInit {
   currentPage = 0;
   filterForm: FormGroup;
 
+  totalStockDispo = 0;
+
   columns: DataTableColumn[] = [
     { field: 'producteur', header: 'Producteur', sortable: true },
     { field: 'stock', header: 'Zone', align: 'center',
@@ -29,7 +31,14 @@ export class FacturesStatComponent implements OnInit {
     { field: 'quantite', header: 'Qté vendue', align: 'center',
       format: v => `<strong>${Number(v ?? 0).toLocaleString('fr-FR')}</strong>` },
     { field: 'montant_vendu', header: 'Montant vendu', align: 'right',
-      format: v => `<strong class="text-success">${Number(v ?? 0).toLocaleString('fr-FR')} FCFA</strong>` }
+      format: v => `<strong class="text-success">${Number(v ?? 0).toLocaleString('fr-FR')} FCFA</strong>` },
+    { field: 'stock_disponible', header: 'Stock actuel', align: 'center',
+      format: v => {
+        const n = Number(v ?? 0);
+        return n <= 0
+          ? `<span class="badge bg-danger">${n}</span>`
+          : `<span class="badge bg-success">${n}</span>`;
+      }}
   ];
 
   constructor(private factureService: FactureService, private fb: FormBuilder, private pdf: PdfService) {
@@ -55,11 +64,17 @@ export class FacturesStatComponent implements OnInit {
         this.allStats = Array.isArray(res?.data) ? res.data : (res?.data?.data || []);
         this.totalQte = this.allStats.reduce((acc, r) => acc + Number(r.quantite ?? 0), 0);
         this.totalMontant = this.allStats.reduce((acc, r) => acc + Number(r.montant_vendu ?? 0), 0);
+        this.totalStockDispo = this.allStats.reduce((acc, r) => acc + Number(r.stock_disponible ?? 0), 0);
         this.applyPage();
         this.loading = false;
       },
       error: () => { this.loading = false; }
     });
+  }
+
+  setZone(zone: string): void {
+    this.filterForm.get('stock')?.setValue(zone);
+    this.loadStats();
   }
 
   onPageChange(e: { page: number; size: number }): void {
@@ -78,9 +93,10 @@ export class FacturesStatComponent implements OnInit {
     const range = `Période : ${new Date(date_debut).toLocaleDateString('fr-FR')} → ${new Date(date_fin).toLocaleDateString('fr-FR')} — Zone ${stock}`;
     const cols = [
       { header: 'Producteur', width: '*' },
-      { header: 'Zone', width: '50' },
-      { header: 'Qté vendue', width: '70' },
-      { header: 'Montant vendu', width: '100' }
+      { header: 'Zone', width: '45' },
+      { header: 'Qté vendue', width: '65' },
+      { header: 'Montant vendu', width: '95' },
+      { header: 'Stock actuel', width: '65' }
     ];
     const fmt = (n: number) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' FCFA';
     const fmtQte = (n: number) => Number(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -88,7 +104,8 @@ export class FacturesStatComponent implements OnInit {
       r.producteur || '-',
       r.stock || '-',
       fmtQte(r.quantite ?? 0),
-      fmt(r.montant_vendu ?? 0)
+      fmt(r.montant_vendu ?? 0),
+      fmtQte(r.stock_disponible ?? 0)
     ]);
     this.pdf.generateStatPdf('Statistiques par producteur', range, cols, rows, `stat-producteur-${stock}-${date_debut}`);
   }

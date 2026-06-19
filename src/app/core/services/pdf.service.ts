@@ -2,11 +2,20 @@ import { Injectable } from '@angular/core';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-const COMPANY_NAME = 'CLAUDEX — Gestion des Bars';
-const COMPANY_ADDRESS = 'Système de gestion de stock et de facturation';
+const COMPANY_NAME = 'CLAUDEX - Gestion des Bars';
+const COMPANY_ADDRESS = 'Systeme de gestion de stock et de facturation';
 
 @Injectable({ providedIn: 'root' })
 export class PdfService {
+
+  private ascii(text: string): string {
+    return text
+      .replace(/[àâä]/g, 'a').replace(/[éèêë]/g, 'e').replace(/[îï]/g, 'i')
+      .replace(/[ôö]/g, 'o').replace(/[ùûü]/g, 'u').replace(/ç/g, 'c')
+      .replace(/[ÀÂÄÁÃÅ]/g, 'A').replace(/[ÉÈÊË]/g, 'E').replace(/[ÎÏ]/g, 'I')
+      .replace(/[ÔÖ]/g, 'O').replace(/[ÙÛÜÚ]/g, 'U').replace(/Ç/g, 'C')
+      .replace(/→/g, '->').replace(/—/g, '-').replace(/[^\x00-\x7F]/g, '?');
+  }
 
   generateStatPdf(
     title: string,
@@ -24,17 +33,17 @@ export class PdfService {
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(30, 41, 59);
-    doc.text(COMPANY_NAME, pageW / 2, y, { align: 'center' });
+    doc.text(this.ascii(COMPANY_NAME), pageW / 2, y, { align: 'center' });
     y += 22;
 
     doc.setFontSize(16);
-    doc.text(title, pageW / 2, y, { align: 'center' });
+    doc.text(this.ascii(title), pageW / 2, y, { align: 'center' });
     y += 18;
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(100, 116, 139);
-    doc.text(dateRange, pageW / 2, y, { align: 'center' });
+    doc.text(this.ascii(dateRange), pageW / 2, y, { align: 'center' });
     y += 24;
 
     autoTable(doc, {
@@ -50,7 +59,7 @@ export class PdfService {
         doc.setFontSize(7);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(148, 163, 184);
-        doc.text(COMPANY_ADDRESS, 25, doc.internal.pageSize.getHeight() - 10);
+        doc.text(this.ascii(COMPANY_ADDRESS), 25, doc.internal.pageSize.getHeight() - 10);
       }
     });
 

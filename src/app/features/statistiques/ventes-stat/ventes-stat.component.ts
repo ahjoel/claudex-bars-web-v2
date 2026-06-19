@@ -75,6 +75,11 @@ export class VentesStatComponent implements OnInit {
     });
   }
 
+  setZone(zone: string): void {
+    this.filterForm.get('stock')?.setValue(zone);
+    this.loadStats();
+  }
+
   onPageChange(e: { page: number; size: number }): void {
     this.currentPage = e.page;
     this.pageSize = e.size;
