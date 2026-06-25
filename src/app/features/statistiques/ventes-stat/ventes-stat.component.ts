@@ -93,7 +93,8 @@ export class VentesStatComponent implements OnInit {
 
   downloadPdf(): void {
     const { stock, date_debut, date_fin } = this.filterForm.value;
-    const range = `Période : ${new Date(date_debut).toLocaleDateString('fr-FR')} → ${new Date(date_fin).toLocaleDateString('fr-FR')} — Zone ${stock}`;
+    const fmtDate = (s: string) => s ? s.split('-').reverse().join('/') : '-';
+    const range = `Periode : ${fmtDate(date_debut)} -> ${fmtDate(date_fin)} - Zone ${stock}`;
     const cols = [
       { header: 'Produit', width: '*' },
       { header: 'Modèle', width: '80' },

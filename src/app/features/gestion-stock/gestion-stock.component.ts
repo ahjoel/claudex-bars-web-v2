@@ -124,10 +124,10 @@ export class GestionStockComponent implements OnInit, OnDestroy {
         const r1Data: any[] = (r1 as any)?.data?.data || [];
         const rcData: any[] = (rc as any)?.data?.data || [];
         const map = new Map<number, any>();
-        r1Data.forEach(item => map.set(item.id, { ...item, stockR1: item.st_dispo ?? 0, stockRC: 0 }));
+        r1Data.forEach(item => map.set(item.id, { ...item, stockR1: item.st_dispo ?? 0, stockRC: 0, zone: 'R1' }));
         rcData.forEach(item => {
           if (map.has(item.id)) map.get(item.id).stockRC = item.st_dispo ?? 0;
-          else map.set(item.id, { ...item, stockR1: 0, stockRC: item.st_dispo ?? 0 });
+          else map.set(item.id, { ...item, stockR1: 0, stockRC: item.st_dispo ?? 0, zone: 'RC' });
         });
         this.allStockDispo = Array.from(map.values()).map(item => ({
           ...item, total: (item.stockR1 ?? 0) + (item.stockRC ?? 0)

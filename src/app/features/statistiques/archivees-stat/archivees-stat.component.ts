@@ -86,7 +86,9 @@ export class ArchiveesStatComponent implements OnInit {
 
   downloadPdf(): void {
     const { stock, date_debut, date_fin } = this.filterForm.value;
-    const range = `Période : ${new Date(date_debut).toLocaleDateString('fr-FR')} → ${new Date(date_fin).toLocaleDateString('fr-FR')} — Zone ${stock}`;
+    const fmtDate = (s: string) => s ? s.split('-').reverse().join('/') : '-';
+    const fmtDatetime = (s: string) => s ? s.split('T')[0].split('-').reverse().join('/') : '-';
+    const range = `Periode : ${fmtDate(date_debut)} -> ${fmtDate(date_fin)} - Zone ${stock}`;
     const cols = [
       { header: 'Code', width: '70' },
       { header: 'Client', width: '*' },
@@ -100,7 +102,7 @@ export class ArchiveesStatComponent implements OnInit {
     const rows = this.allStats.map(r => [
       r.code || '-',
       r.client || '-',
-      r.date_creation ? new Date(r.date_creation).toLocaleDateString('fr-FR') : '-',
+      fmtDatetime(r.date_creation),
       r.stock || '-',
       Number(r.nbproduit ?? 0),
       fmt(r.totalfacture ?? 0),

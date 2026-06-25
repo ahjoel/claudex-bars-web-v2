@@ -80,13 +80,13 @@ export class StockStatComponent implements OnInit {
         const map = new Map<number, any>();
         r1Data.forEach(item => map.set(item.id, {
           produit: item.produit, model: item.model,
-          stockR1: Number(item.st_dispo ?? 0), stockRC: 0
+          stockR1: Number(item.st_dispo ?? 0), stockRC: 0, zone: 'R1'
         }));
         rcData.forEach(item => {
           if (map.has(item.id)) {
             map.get(item.id).stockRC = Number(item.st_dispo ?? 0);
           } else {
-            map.set(item.id, { produit: item.produit, model: item.model, stockR1: 0, stockRC: Number(item.st_dispo ?? 0) });
+            map.set(item.id, { produit: item.produit, model: item.model, stockR1: 0, stockRC: Number(item.st_dispo ?? 0), zone: 'RC' });
           }
         });
         this.allData = Array.from(map.values()).map(item => ({
@@ -108,9 +108,9 @@ export class StockStatComponent implements OnInit {
 
   private applyFilter(): void {
     if (this.activeZone === 'R1') {
-      this.filteredData = this.allData.filter(item => item.stockR1 > 0);
+      this.filteredData = this.allData.filter(item => item.zone === 'R1');
     } else if (this.activeZone === 'RC') {
-      this.filteredData = this.allData.filter(item => item.stockRC > 0);
+      this.filteredData = this.allData.filter(item => item.zone === 'RC');
     } else {
       this.filteredData = [...this.allData];
     }

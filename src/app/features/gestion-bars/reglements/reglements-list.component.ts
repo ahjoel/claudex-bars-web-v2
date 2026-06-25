@@ -118,7 +118,7 @@ export class ReglementsListComponent implements OnInit, OnDestroy {
 
   private openReglementReceipt(r: Reglement, lignes: any[]): void {
     const ra = r as any;
-    const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : '-';
+    const date = r.createdAt ? String(r.createdAt).split('T')[0].split('-').reverse().join('/') : '-';
     const fmt = (n: number) => Number(n).toLocaleString('fr-FR');
     const client      = ra.client || '-';
     const codeFacture = ra.codeFacture || ra.code || '-';

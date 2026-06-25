@@ -75,12 +75,14 @@ export class CaisseMensuelleComponent implements OnInit {
 
   downloadPdf(): void {
     const { date_debut, date_fin } = this.filterForm.value;
-    const range = `Période : ${new Date(date_debut).toLocaleDateString('fr-FR')} → ${new Date(date_fin).toLocaleDateString('fr-FR')}`;
+    const fmtDate = (s: string) => s ? s.split('-').reverse().join('/') : '-';
+    const fmtDatetime = (s: string) => s ? s.split('T')[0].split('-').reverse().join('/') : '-';
+    const range = `Periode : ${fmtDate(date_debut)} -> ${fmtDate(date_fin)}`;
     const cols = [
       { header: 'Code facture', width: '80' },
       { header: 'Client', width: '*' },
-      { header: 'Encaissé', width: '100' },
-      { header: 'À payer', width: '100' },
+      { header: 'Encaisse', width: '100' },
+      { header: 'A payer', width: '100' },
       { header: 'Date', width: '90' }
     ];
     const fmt = (n: number) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' FCFA';
@@ -89,7 +91,7 @@ export class CaisseMensuelleComponent implements OnInit {
       r.client || '-',
       fmt(r.mtrecu ?? 0),
       fmt(r.mtpayer ?? 0),
-      r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : '-'
+      fmtDatetime(r.createdAt)
     ]);
     this.pdf.generateStatPdf('Caisse mensuelle — Règlements', range, cols, rows, `caisse-${date_debut}-${date_fin}`);
   }

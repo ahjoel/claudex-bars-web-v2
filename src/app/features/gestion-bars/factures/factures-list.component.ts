@@ -237,7 +237,7 @@ export class FacturesListComponent implements OnInit, OnDestroy {
     const f = this.selectedFacture;
     if (!f) return;
     const fmt = (n: number) => Number(n).toLocaleString('fr-FR');
-    const date = f.createdAt ? new Date(f.createdAt).toLocaleDateString('fr-FR') : '-';
+    const date = f.createdAt ? String(f.createdAt).split('T')[0].split('-').reverse().join('/') : '-';
     const client = (f as any).client || (f as any).clientName || '-';
     const mouvements: any[] = (f.mouvements || []);
     const rows = mouvements.map((m: any) => {
