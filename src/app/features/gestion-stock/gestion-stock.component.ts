@@ -55,8 +55,8 @@ export class GestionStockComponent implements OnInit, OnDestroy {
     return [
       { field: 'produit', header: 'Produit' },
       { field: 'model', header: 'Modèle' },
-      { field: stockField, header: `Stock ${this.dispoZone}`, align: 'center', format: v => `<strong class="${stockColor}">${v ?? 0}</strong>` },
-      { field: 'total', header: 'Total', align: 'center', format: v => `<strong>${v ?? 0}</strong>` }
+      { field: stockField, header: `Stock ${this.dispoZone}`, align: 'center', format: v => `<strong class="${stockColor}">${Number(v ?? 0)}</strong>` },
+      { field: 'total', header: 'Total', align: 'center', format: v => `<strong>${Number(v ?? 0)}</strong>` }
     ];
   }
 
@@ -130,20 +130,35 @@ export class GestionStockComponent implements OnInit, OnDestroy {
           else map.set(item.id, { ...item, stockR1: 0, stockRC: item.st_dispo ?? 0, zone: 'RC' });
         });
         this.allStockDispo = Array.from(map.values()).map(item => ({
-          ...item, total: (item.stockR1 ?? 0) + (item.stockRC ?? 0)
+          ...item, total: item.zone === 'RC' ? (item.stockRC ?? 0) : (item.stockR1 ?? 0)
         }));
-        this.dispoTotal = this.allStockDispo.length;
-        this.dispoPage = 0;
-        this.applyDispoPage();
+        this.applyDispoFilter();
         this.loading = false;
       },
       error: () => { this.loading = false; }
     });
   }
 
+  switchDispoZone(zone: 'R1' | 'RC'): void {
+    this.dispoZone = zone;
+    this.dispoPage = 0;
+    this.applyDispoFilter();
+  }
+
+  applyDispoFilter(): void {
+    const filtered = this.allStockDispo.filter(item => item.zone === this.dispoZone);
+    this.dispoTotal = filtered.length;
+    this.dispoPage = 0;
+    const start = 0;
+    this.stockDispoPage = filtered.slice(start, this.dispoPageSize);
+    this._filteredStockDispo = filtered;
+  }
+
+  private _filteredStockDispo: any[] = [];
+
   private applyDispoPage(): void {
     const start = this.dispoPage * this.dispoPageSize;
-    this.stockDispoPage = this.allStockDispo.slice(start, start + this.dispoPageSize);
+    this.stockDispoPage = this._filteredStockDispo.slice(start, start + this.dispoPageSize);
   }
 
   onDispoPageChange(e: { page: number; size: number }): void {

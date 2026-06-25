@@ -41,7 +41,23 @@
     <!-- Stock Dispo Tab -->
     <div *ngIf="activeTab === 'dispo'">
       <div class="card-custom">
-        <div class="card-header"><i class="fas fa-chart-pie me-2"></i>Stock disponible par produit ({{ dispoTotal }})</div>
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="fas fa-chart-pie me-2"></i>Stock disponible par produit ({{ dispoTotal }})</span>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm fw-bold"
+              [class.btn-primary]="dispoZone === 'R1'"
+              [class.btn-outline-primary]="dispoZone !== 'R1'"
+              (click)="switchDispoZone('R1')">
+              <i class="fas fa-warehouse me-1"></i>R1
+            </button>
+            <button class="btn btn-sm fw-bold"
+              [class.btn-info]="dispoZone === 'RC'"
+              [class.btn-outline-info]="dispoZone !== 'RC'"
+              (click)="switchDispoZone('RC')">
+              <i class="fas fa-boxes me-1"></i>RC
+            </button>
+          </div>
+        </div>
         <div class="card-body p-0">
           <div class="p-3">
             <app-datatable
