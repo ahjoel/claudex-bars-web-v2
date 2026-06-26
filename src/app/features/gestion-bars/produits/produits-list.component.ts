@@ -1,9 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Subscription, forkJoin, of } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ProduitService } from '../../../core/services/produit.service';
+import { MouvementService } from '../../../core/services/mouvement.service';
 import { ModelCategoryService } from '../../../core/services/model-category.service';
 import { FournisseurService } from '../../../core/services/fournisseur.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
@@ -31,6 +32,8 @@ export class ProduitsListComponent implements OnInit, OnDestroy {
   currentPage = 0;
   form: FormGroup;
 
+  private stockMap = new Map<number, number>();
+
   columns: DataTableColumn[] = [
     { field: 'code', header: 'Code', width: '100px' },
     { field: 'name', header: 'Nom', sortable: true },
@@ -39,7 +42,15 @@ export class ProduitsListComponent implements OnInit, OnDestroy {
         ? `<span class="badge bg-primary">R1</span>`
         : `<span class="badge bg-success">RC</span>` },
     { field: 'pv', header: 'Prix vente', align: 'right', format: v => `<strong>${Number(v).toLocaleString('fr-FR')} FCFA</strong>` },
-    { field: 'stock_min', header: 'Stock min', align: 'center', format: v => v ?? '-' },
+    { field: 'st_dispo', header: 'Stock dispo', align: 'center',
+      format: (v, row: any) => {
+        const val = Number(v ?? 0);
+        const seuil = Number(row?.stock_min ?? 0);
+        if (val <= 0) return `<span class="badge bg-danger">Épuisé</span>`;
+        if (seuil > 0 && val <= seuil) return `<span class="text-warning fw-bold">${val}</span>`;
+        return `<span class="text-success fw-bold">${val}</span>`;
+      }},
+    { field: 'stock_min', header: 'Seuil min', align: 'center', format: v => v ?? '-' },
     { field: 'createdAt', header: 'Ajouté le', format: v => v ? new Date(v).toLocaleDateString('fr-FR') : '-' }
   ];
 
@@ -52,6 +63,7 @@ export class ProduitsListComponent implements OnInit, OnDestroy {
 
   constructor(
     private produitService: ProduitService,
+    private mouvementService: MouvementService,
     private modelService: ModelCategoryService,
     private fournisseurService: FournisseurService,
     private snackbar: SnackbarService,
@@ -89,10 +101,21 @@ export class ProduitsListComponent implements OnInit, OnDestroy {
 
   loadData(): void {
     this.loading = true;
-    this.produitService.list(this.currentPage, this.pageSize, this.zone || undefined).subscribe({
+    const zones = this.zone ? [this.zone] : ['R1', 'RC'];
+    forkJoin({
+      produits: this.produitService.list(this.currentPage, this.pageSize, this.zone || undefined),
+      ...Object.fromEntries(zones.map(z => [z, this.mouvementService.stockDispo(z, 1, 999)]))
+    }).subscribe({
       next: (res: any) => {
-        this.produits = res?.data?.data || [];
-        this.totalRecords = res?.data?.pagination?.total ?? this.produits.length;
+        this.stockMap.clear();
+        zones.forEach(z => {
+          const items: any[] = res[z]?.data?.data || [];
+          items.forEach(item => { if (item.id) this.stockMap.set(item.id, item.st_dispo ?? 0); });
+        });
+        this.produits = (res.produits?.data?.data || []).map((p: any) => ({
+          ...p, st_dispo: this.stockMap.get(p.id) ?? 0
+        }));
+        this.totalRecords = res.produits?.data?.pagination?.total ?? this.produits.length;
         this.loading = false;
       },
       error: () => { this.loading = false; }

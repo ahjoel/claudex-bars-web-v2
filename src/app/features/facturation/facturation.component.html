@@ -11,16 +11,16 @@
       <!-- Sélecteur de zone -->
       <div class="d-flex gap-2">
         <button class="btn px-4 py-2 fw-bold" [class.btn-primary]="activeZone === 'R1'" [class.btn-outline-primary]="activeZone !== 'R1'"
-          [disabled]="submitting || (zoneLocked && activeZone !== 'R1')"
-          [style.opacity]="(zoneLocked && activeZone !== 'R1') ? '0.4' : '1'"
-          [style.cursor]="(zoneLocked && activeZone !== 'R1') ? 'not-allowed' : 'pointer'"
+          [disabled]="submitting || activeZone !== 'R1'"
+          [style.opacity]="activeZone !== 'R1' ? '0.4' : '1'"
+          [style.cursor]="activeZone !== 'R1' ? 'not-allowed' : 'pointer'"
           (click)="switchZone('R1')">
           <i class="fas fa-warehouse me-2"></i>Zone R1
         </button>
         <button class="btn px-4 py-2 fw-bold" [class.btn-info]="activeZone === 'RC'" [class.btn-outline-info]="activeZone !== 'RC'"
-          [disabled]="submitting || (zoneLocked && activeZone !== 'RC')"
-          [style.opacity]="(zoneLocked && activeZone !== 'RC') ? '0.4' : '1'"
-          [style.cursor]="(zoneLocked && activeZone !== 'RC') ? 'not-allowed' : 'pointer'"
+          [disabled]="submitting || activeZone !== 'RC'"
+          [style.opacity]="activeZone !== 'RC' ? '0.4' : '1'"
+          [style.cursor]="activeZone !== 'RC' ? 'not-allowed' : 'pointer'"
           (click)="switchZone('RC')">
           <i class="fas fa-warehouse me-2"></i>Zone RC
         </button>

@@ -52,34 +52,6 @@
       </div>
     </div>
 
-    <!-- KPIs -->
-    <div class="row g-3 mb-4" *ngIf="allStats.length">
-      <div class="col-md-3">
-        <div class="stat-card" style="border-left-color:#0d6efd">
-          <div class="stat-number text-primary">{{ allStats.length }}</div>
-          <div class="stat-label">Produits</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="stat-card" style="border-left-color:#198754">
-          <div class="stat-number text-success">{{ totalEntrees }}</div>
-          <div class="stat-label">Total entrées</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="stat-card" style="border-left-color:#dc3545">
-          <div class="stat-number text-danger">{{ totalVendus }}</div>
-          <div class="stat-label">Total vendus</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="stat-card" [style.border-left-color]="totalRestant <= 0 ? '#dc3545' : '#f59e0b'">
-          <div class="stat-number" [class.text-danger]="totalRestant <= 0" [class.text-warning]="totalRestant > 0">{{ totalRestant }}</div>
-          <div class="stat-label">Stock restant total</div>
-        </div>
-      </div>
-    </div>
-
     <!-- Tableau -->
     <div class="card-custom" *ngIf="searched">
       <div class="card-header d-flex justify-content-between align-items-center">

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin, Subscription } from 'rxjs';
 import { MouvementService } from '../../core/services/mouvement.service';
@@ -12,7 +12,7 @@ import { Mouvement, Produit } from '../../core/models/entities.model';
 @Component({
   selector: 'app-gestion-stock',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DataTableComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, DataTableComponent],
   templateUrl: './gestion-stock.component.html'
 })
 export class GestionStockComponent implements OnInit, OnDestroy {
@@ -36,6 +36,7 @@ export class GestionStockComponent implements OnInit, OnDestroy {
   dispoTotal = 0;
   dispoPage = 0;
   dispoPageSize = 10;
+  dispoSearch = '';
   form: FormGroup;
 
   columns: DataTableColumn[] = [
@@ -82,12 +83,18 @@ export class GestionStockComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.produitService.list(0, 999).subscribe({ next: (res: any) => { this.produits = res?.data?.data || []; } });
     this.zoneSub = this.route.queryParamMap.subscribe(params => {
       const zone = params.get('zone');
       this.activeTab = (zone === 'R1' || zone === 'RC') ? zone : 'R1';
       this.currentPage = 0;
+      this.loadProduits();
       this.loadData();
+    });
+  }
+
+  loadProduits(): void {
+    this.produitService.list(0, 999, this.activeTab as 'R1' | 'RC').subscribe({
+      next: (res: any) => { this.produits = res?.data?.data || []; }
     });
   }
 
@@ -97,6 +104,7 @@ export class GestionStockComponent implements OnInit, OnDestroy {
     if (tab === 'dispo') this.dispoZone = this.activeTab as 'R1' | 'RC';
     this.activeTab = tab;
     this.currentPage = 0;
+    this.dispoSearch = '';
     if (tab === 'dispo') this.loadStockDispo();
     else this.loadData();
   }
@@ -142,15 +150,24 @@ export class GestionStockComponent implements OnInit, OnDestroy {
   switchDispoZone(zone: 'R1' | 'RC'): void {
     this.dispoZone = zone;
     this.dispoPage = 0;
+    this.dispoSearch = '';
+    this.applyDispoFilter();
+  }
+
+  onDispoSearch(): void {
+    this.dispoPage = 0;
     this.applyDispoFilter();
   }
 
   applyDispoFilter(): void {
-    const filtered = this.allStockDispo.filter(item => item.zone === this.dispoZone);
+    const term = this.dispoSearch.trim().toLowerCase();
+    const filtered = this.allStockDispo.filter(item =>
+      item.zone === this.dispoZone &&
+      (!term || (item.produit ?? '').toLowerCase().includes(term))
+    );
     this.dispoTotal = filtered.length;
     this.dispoPage = 0;
-    const start = 0;
-    this.stockDispoPage = filtered.slice(start, this.dispoPageSize);
+    this.stockDispoPage = filtered.slice(0, this.dispoPageSize);
     this._filteredStockDispo = filtered;
   }
 

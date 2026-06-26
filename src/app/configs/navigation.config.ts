@@ -54,10 +54,10 @@ export const navigationConfig: NavSection[] = [
         icon: 'fas fa-chart-bar',
         children: [
           { title: 'Stat. des factures',      path: '/statistiques/factures'        },
-          { title: 'Stat. des ventes',         path: '/statistiques/ventes'           },
           { title: 'Factures archivées',       path: '/statistiques/archivees'        },
           { title: 'Factures impayées',        path: '/statistiques/impayes'          },
           { title: 'Inventaire stock',         path: '/statistiques/stock'            },
+          { title: 'Stat. des ventes',         path: '/statistiques/ventes'           },
           { title: 'Caisse mensuelle',         path: '/statistiques/caisse-mensuelle' }
         ]
       }

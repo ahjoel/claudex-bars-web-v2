@@ -16,9 +16,6 @@ export class VentesStatComponent implements OnInit {
   pagedStats: any[] = [];
   loading = false;
   searched = false;
-  totalEntrees = 0;
-  totalVendus = 0;
-  totalRestant = 0;
   pageSize = 10;
   currentPage = 0;
   filterForm: FormGroup;
@@ -65,9 +62,6 @@ export class VentesStatComponent implements OnInit {
     this.factureService.statGeneral(stock, { date_debut, date_fin }).subscribe({
       next: (res: any) => {
         this.allStats = Array.isArray(res?.data) ? res.data : (res?.data?.data || []);
-        this.totalEntrees = this.allStats.reduce((acc, r) => acc + Number(r.qte_stock_entree ?? 0), 0);
-        this.totalVendus = this.allStats.reduce((acc, r) => acc + Number(r.qte_stock_vendu ?? 0), 0);
-        this.totalRestant = this.allStats.reduce((acc, r) => acc + Number(r.qte_stock_restant ?? 0), 0);
         this.applyPage();
         this.loading = false;
       },
