@@ -35,7 +35,7 @@ export interface Produit extends BaseEntity {
   fournisseurId?: number;
   pv: number;
   stock_min?: number;
-  stock?: number;
+  stock?: string;
   fournisseur?: Fournisseur;
   model?: ModelCategory;
 }
