@@ -28,6 +28,7 @@ export class GestionStockComponent implements OnInit, OnDestroy {
   pageSize = 10;
   currentPage = 0;
   activeTab = 'R1';
+  zoneStock: 'R1' | 'RC' = 'R1';
   modalZone: 'R1' | 'RC' = 'R1';
   editingId: number | null = null;
   dispoZone: 'R1' | 'RC' = 'R1';
@@ -85,7 +86,8 @@ export class GestionStockComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.zoneSub = this.route.queryParamMap.subscribe(params => {
       const zone = params.get('zone');
-      this.activeTab = (zone === 'R1' || zone === 'RC') ? zone : 'R1';
+      this.zoneStock = (zone === 'R1' || zone === 'RC') ? zone : 'R1';
+      this.activeTab = this.zoneStock;
       this.currentPage = 0;
       this.loadProduits();
       this.loadData();
@@ -93,7 +95,7 @@ export class GestionStockComponent implements OnInit, OnDestroy {
   }
 
   loadProduits(): void {
-    this.produitService.list(0, 999, this.activeTab as 'R1' | 'RC').subscribe({
+    this.produitService.list(0, 999, this.zoneStock).subscribe({
       next: (res: any) => { this.produits = res?.data?.data || []; }
     });
   }
@@ -189,7 +191,7 @@ export class GestionStockComponent implements OnInit, OnDestroy {
   openModal(): void {
     this.submitted = false;
     this.editingId = null;
-    this.modalZone = (this.activeTab === 'RC') ? 'RC' : 'R1';
+    this.modalZone = this.zoneStock;
     this.form.reset({ types: 'ADD', stock: this.modalZone });
     this.showModal = true;
   }

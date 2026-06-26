@@ -171,7 +171,10 @@ export class FacturationComponent implements OnInit, OnDestroy {
     });
   }
 
+  private stockDispoRaw: { R1: any[]; RC: any[] } = { R1: [], RC: [] };
+
   private buildStockMap(r1Data: any[], rcData: any[]): void {
+    this.stockDispoRaw = { R1: r1Data, RC: rcData };
     this.stockMap.clear();
     r1Data.forEach(item => {
       if (item.id) this.stockMap.set(item.id, { R1: item.st_dispo ?? 0, RC: 0 });
@@ -191,17 +194,26 @@ export class FacturationComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: (res: any) => {
         this.buildStockMap(res.r1?.data?.data || [], res.rc?.data?.data || []);
+        this.loadProduits();
       }
     });
   }
 
   loadProduits(): void {
-    this.loadingProduits = true;
-    this.produits = [];
-    this.produitService.list(0, 999, this.activeZone).subscribe({
-      next: (res: any) => { this.produits = res?.data?.data || []; this.loadingProduits = false; },
-      error: () => { this.loadingProduits = false; }
-    });
+    // Le dropdown dérive du stock disponible de la zone active : même source que les
+    // statistiques, donc les produits avec mouvements croisés de zone (ex: LAGER en RC)
+    // apparaissent avec leur quantité réelle.
+    this.produits = (this.stockDispoRaw[this.activeZone] || []).map((item: any) => ({
+      id: item.id,
+      code: item.code ?? '',
+      name: item.produit,
+      pv: Number(item.pv ?? 0),
+      stock_min: Number(item.stockMinimal ?? 0),
+      stock: this.activeZone,
+      model: item.model,
+      fournisseur: item.fournisseur
+    } as unknown as Produit));
+    this.loadingProduits = false;
   }
 
   switchZone(zone: 'R1' | 'RC'): void {

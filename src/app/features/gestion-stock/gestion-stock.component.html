@@ -123,8 +123,9 @@
                   <label class="form-label">Produit *</label>
                   <select class="form-select" formControlName="produitId" [class.is-invalid]="submitted && form.get('produitId')?.invalid">
                     <option value="">Sélectionner...</option>
-                    <option *ngFor="let p of produits" [value]="p.id">{{ p.name }} ({{ p.code }})</option>
+                    <option *ngFor="let p of produits" [value]="p.id">{{ p.name }} ({{ p.code }}) — Zone {{ p.stock }}</option>
                   </select>
+                  <div class="form-text">Seuls les produits de la Zone {{ modalZone }} sont listés.</div>
                   <div class="invalid-feedback">Produit requis</div>
                 </div>
                 <div class="col-md-6">
