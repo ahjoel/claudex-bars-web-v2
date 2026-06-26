@@ -158,7 +158,11 @@
                       (click)="addToCart(p)"
                       style="transition:.15s">
                       <div>
-                        <span class="fw-semibold small d-block">{{ p.name }}</span>
+                        <span class="fw-semibold small d-block">
+                          {{ p.name }}
+                          <span class="badge ms-1" [class.bg-primary]="p.stock === 'R1'" [class.bg-info]="p.stock === 'RC'"
+                            style="font-size:.6rem">Zone {{ p.stock }}</span>
+                        </span>
                         <span class="small text-primary font-monospace">{{ p.pv | cfa }}</span>
                       </div>
                       <div class="d-flex align-items-center gap-2">
